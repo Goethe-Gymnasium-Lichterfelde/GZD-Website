@@ -5,6 +5,8 @@
 ```bash
 # install dependencies
 $ yarn install
+# und weil ich ein bisschen gemixt habe:
+$ npm i
 
 # serve with hot reload at localhost:3000
 $ yarn dev
