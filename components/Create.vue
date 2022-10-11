@@ -6,7 +6,7 @@
                     <div class="title">Neues Projekt</div>
                     <div class="subtitle">Starte eine neue Initiative um das Goethe zu verändern!</div>
                 </div>
-                <div @click="close()"><Icon small secondary pstyle="margin: 0px;">close</Icon></div>
+                <div @click="close()"><Icon small secondary>close</Icon></div>
             </div>
             <div class="content">
                 <a-input @value="name" placeholder="Name des Projektes" /><br><br>
