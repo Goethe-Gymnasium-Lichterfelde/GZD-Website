@@ -2,8 +2,11 @@ const express = require('express')
 const app = express()
 require('dotenv').config()
 
-app.get('/', (req, res) => {
-    res.send('Hello World!')
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, PUT, POST");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-auth-token");
+    next();
 })
 
 app.use('/dsb', require('./routes/dsb'))
