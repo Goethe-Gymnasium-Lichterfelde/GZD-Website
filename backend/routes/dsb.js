@@ -45,8 +45,15 @@ router.get('/plan', async (req, res) => {
                     date: data.date,
                     plan: []
                 }
-                for (const plan of data.objects) {
-                    const p = await convWebsite(plan.url)
+                if (data.url == null)
+                    for (const plan of data.objects) {
+                        const p = await convWebsite(plan.url)
+                        for (const item of p) {
+                            objs.plan.push(item)
+                        }
+                    }
+                else {
+                    const p = await convWebsite(data.url)
                     for (const item of p) {
                         objs.plan.push(item)
                     }
