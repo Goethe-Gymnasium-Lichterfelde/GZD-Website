@@ -10,6 +10,7 @@ app.use(function (req, res, next) {
 })
 
 app.use('/dsb', require('./routes/dsb'))
+app.use('/nextcloud', require('./routes/nextcloud'))
 
 app.listen(3001, () => {
     console.log('Server is running on port 3001')
