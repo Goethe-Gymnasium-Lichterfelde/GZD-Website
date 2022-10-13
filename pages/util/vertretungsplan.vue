@@ -30,6 +30,7 @@
 <script>
 export default {
     name: 'Vertretungsplan',
+    middleware: 'auth',
     data() {
         return {
             tables: []

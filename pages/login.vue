@@ -25,10 +25,12 @@ export default {
     methods: {
         async login() {
             this.loading = true
-            let data = await fetch('http://localhost:3001/nextcloud/login', { method: 'GET' })
-            data = await data.json()
-            await window.open(data.login, '_blank')
-            let user = await fetch('http://localhost:3001/nextcloud/login/' + data.poll.token)
+            this.$auth.loginWith('local').then(() => {
+                this.$router.push('/projekte')
+            }).catch((error) => {
+                this.error = error.response.data.message
+                this.loading = false
+            })
         }
     },
     layout: 'login',

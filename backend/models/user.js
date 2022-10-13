@@ -13,4 +13,4 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema)
 
-exports.Token = User
+exports.User = User

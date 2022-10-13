@@ -32,6 +32,7 @@ export default {
             sync: false,
         }
     },
+    middleware: 'auth',
     components: { 
         Icon
     },

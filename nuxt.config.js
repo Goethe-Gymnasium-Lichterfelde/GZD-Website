@@ -40,7 +40,38 @@ export default {
     '@nuxtjs/pwa',
     // https://go.nuxtjs.dev/content
     '@nuxt/content',
+    ['cookie-universal-nuxt', { alias: 'cook' }],
+    '@nuxtjs/axios',
+    '@nuxtjs/auth-next'
   ],
+
+  auth: {
+    strategies: {
+      local: {
+        scheme: '~/schemes/auth.js',
+        token: {
+          property: 'token',
+          maxAge: 60 * 60
+        },
+        user: {
+          property: 'user',
+          autoFetch: true
+        }
+      }
+    },
+    redirect: {
+      login: '/login',
+      logout: '/login',
+      callback: '/login',
+      home: '/'
+    },
+    localStorage: false,
+    cookie: {
+      options: {
+        secure: true
+      }
+    }
+  },
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {

@@ -12,6 +12,7 @@ import Card from '~/components/assets/card.vue';
 export default {
   name: "IndexPage",
   components: { Card },
+  middleware: 'auth',
   data() {
     return {
       projects: [

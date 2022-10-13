@@ -6,7 +6,8 @@
 
 <script>
 export default {
-    name: "Kalender"
+    name: "Kalender",
+    middleware: 'auth',
 }
 </script>
 

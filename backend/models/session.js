@@ -17,4 +17,4 @@ const sessionSchema = new mongoose.Schema({
 
 const Session = mongoose.model('Sessions', sessionSchema)
 
-exports.Token = Session
+exports.Session = Session
