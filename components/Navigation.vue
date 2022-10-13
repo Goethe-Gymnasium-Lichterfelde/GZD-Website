@@ -11,7 +11,7 @@
             <div class="bottom">
                 <Icon :primary="route == '/settings/account'" tooltip="Account">account_circle</Icon>
                 <Icon :primary="route == '/settings'" tooltip="Einstellungen">settings</Icon>
-                <Icon to="/login" tooltip="Abmelden">exit_to_app</Icon>
+                <Icon @click="logout" tooltip="Abmelden">exit_to_app</Icon>
             </div>
         </nav>
         <Create @close="openCreate = false" :openCreate="openCreate" />
@@ -37,6 +37,11 @@ export default {
     watch: {
         $route() {
             this.route = this.$route.path;
+        }
+    },
+    methods: {
+        logout() {
+            this.$auth.logout()
         }
     }
 }

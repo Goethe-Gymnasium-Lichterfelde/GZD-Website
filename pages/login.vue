@@ -26,7 +26,7 @@ export default {
         async login() {
             this.loading = true
             this.$auth.loginWith('local').then(() => {
-                this.$router.push('/projekte')
+                this.$router.push('/')
             }).catch((error) => {
                 this.error = error.response.data.message
                 this.loading = false

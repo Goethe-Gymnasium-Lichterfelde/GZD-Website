@@ -25,4 +25,25 @@ export default class CustomScheme extends LocalScheme {
         return user
     }
 
+    async logout () {
+        this.$auth.setUserToken('')
+        this.$auth.setUser({})
+        return true
+    }
+
+    async fetchUser () {
+        let user = await fetch('http://localhost:3001/nextcloud/me', {
+            method: 'GET',
+            headers: {
+                'x-auth-token': this.$auth.getToken('local')
+            }
+        }).catch(err => {
+            console.log(err)
+        })
+
+        user = await user.json()
+        this.$auth.setUser(user)
+        return user
+    }
+
 }
