@@ -7,14 +7,11 @@ const auth = require('../middleware/auth')
 
 router.get('/login', async (req, res) => {
     let data = await axios.post('https://nextcloud.b-sz-ggyl.logoip.de/index.php/login/v2')
-        .catch(e => {
-            console.log(e)
-        })
+        .catch(e => {})
     res.status(200).send(data.data)
 })
 
 router.get('/me', auth, async (req, res) => {
-    console.log(req.user)
     res.status(200).send(req.user)
 })
 
@@ -55,13 +52,11 @@ router.get('/login/:token', async (req, res) => {
 
         clearInterval(interval)
         const user = await User.findOne({ displayName: data.data.loginName })
-        console.log(user)
         if (!user) {
             const newUser = new User({
                 displayName: data.data.loginName
             })
             await newUser.save()
-            console.log(newUser)
             res.status(200).send({ token: await generateSession(newUser) })
         } else
             res.status(200).send({ token: await generateSession(user) })

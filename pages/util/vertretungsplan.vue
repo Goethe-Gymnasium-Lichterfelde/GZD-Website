@@ -114,6 +114,7 @@ export default {
             transition: all 0.2s ease-in-out;
             cursor: pointer;
             border-bottom: 1px solid rgba(51, 51, 51, 0.1);
+            border-right: 1px solid rgba(51, 51, 51, 0.1);
             
             &:hover {
                 background-color: rgba(51, 51, 51, 0.1);

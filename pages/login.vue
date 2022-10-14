@@ -45,6 +45,10 @@ export default {
     right: 0;
     bottom: 0;
     background-color: #1e1e1e;
+    background-image: url(https://www.goethe-gymnasium-lichterfelde.de/assets/backgrounds/bg4.webp);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 .center {
     width: 500px;
@@ -53,9 +57,9 @@ export default {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #2d2d2d;
+    background-color: #fff;
     border-radius: 10px;
-    color: #fff;
+    color: #2d2d2d;
     text-align: center;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     .title {
