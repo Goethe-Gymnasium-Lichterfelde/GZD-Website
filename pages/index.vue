@@ -7,7 +7,8 @@
       </div>
     </div>
     <div class="projects">
-      <Card :project="project" v-for="project in projects" :key="project.id" />
+      <span v-if="loading" class="material-icons">sync</span>
+      <Card v-else :project="project" v-for="project in projects" :key="project.id" />
     </div><!-- <br><br>
     <div class="title">Arbeitsgemeinschaften</div>
     <div class="subtitle">Hier findest du alle AG's, die es an unserer Schule gibt.</div> -->
@@ -15,58 +16,29 @@
 </template>
 
 <script>
-import Card from '~/components/assets/card.vue';
+import Card from '~/components/assets/card.vue'
+
 export default {
   name: "IndexPage",
   components: { Card },
   middleware: 'auth',
   data() {
     return {
-      projects: [
-        {
-          name: 'Oberstufenraum',
-          description: 'Der Oberstufenraum ist ein Raum, der für die Oberstufe der Schule gedacht ist. Er ist mit einem großen Tisch ausgestattet, der Platz für 20 Schüler bietet. Außerdem gibt es einen Beamer, der für Präsentationen genutzt werden kann. Der Raum ist mit einem großen Fenster ausgestattet, sodass er sehr hell ist. Außerdem gibt es einen großen Schrank, in dem die Schüler ihre Sachen aufbewahren können.',
-          image: 'https://gymnasium-tiergarten.de/_data/631__Copy_.JPG',
-          date: '2020-01-01',
-          anzahlschueler: 20,
-          tags: [
-            'Oberstufe'
-          ]
-        },
-        {
-          name: 'Schultore',
-          description: 'Der Oberstufenraum ist ein Raum, der für die Oberstufe der Schule gedacht ist. Er ist mit einem großen Tisch ausgestattet, der Platz für 20 Schüler bietet. Außerdem gibt es einen Beamer, der für Präsentationen genutzt werden kann. Der Raum ist mit einem großen Fenster ausgestattet, sodass er sehr hell ist. Außerdem gibt es einen großen Schrank, in dem die Schüler ihre Sachen aufbewahren können.',
-          image: 'https://www.goethe-gymnasium-lichterfelde.de/assets/backgrounds/bg1.webp',
-          date: '2020-01-01',
-          anzahlschueler: 20,
-          tags: [
-            'Mittelstufe',
-            'Schulhof'
-          ]
-        },
-        {
-          name: 'Schulball',
-          description: 'Der Oberstufenraum ist ein Raum, der für die Oberstufe der Schule gedacht ist. Er ist mit einem großen Tisch ausgestattet, der Platz für 20 Schüler bietet. Außerdem gibt es einen Beamer, der für Präsentationen genutzt werden kann. Der Raum ist mit einem großen Fenster ausgestattet, sodass er sehr hell ist. Außerdem gibt es einen großen Schrank, in dem die Schüler ihre Sachen aufbewahren können.',
-          image: 'https://www.goethe-gymnasium-lichterfelde.de/assets/backgrounds/bg6.webp',
-          date: '2020-01-01',
-          anzahlschueler: 20,
-          tags: [
-            'Alle'
-          ]
-        },
-        {
-          name: 'Sitzgelegenheiten',
-          description: 'Der Oberstufenraum ist ein Raum, der für die Oberstufe der Schule gedacht ist. Er ist mit einem großen Tisch ausgestattet, der Platz für 20 Schüler bietet. Außerdem gibt es einen Beamer, der für Präsentationen genutzt werden kann. Der Raum ist mit einem großen Fenster ausgestattet, sodass er sehr hell ist. Außerdem gibt es einen großen Schrank, in dem die Schüler ihre Sachen aufbewahren können.',
-          image: 'https://www.goethe-gymnasium-lichterfelde.de/assets/backgrounds/bg4.webp',
-          date: '2020-01-01',
-          anzahlschueler: 20,
-          tags: [
-            'Schulhof'
-          ]
-        },
-      ]
+      projects: [],
+      loading: true,
     }
-  }
+  },
+  async mounted() {
+    this.projects = await this.$axios.$get('http://localhost:3001/projects/', {
+      headers: {
+        'x-auth-token': this.$auth.strategy.token.get().replace('Bearer ', '')
+      }
+    })
+      .catch((error) => {
+        console.log(error)
+      })
+    this.loading = false
+  },
 }
 </script>
 
@@ -131,6 +103,27 @@ export default {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
+    position: relative;
+
+    .material-icons {
+      position: absolute;
+      left: 50%;
+      margin-top: 50px;
+      transform: translate(-50%, 0);
+      font-size: 3rem;
+      color: #2d2d2d;
+
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: translate(-50%, 0) rotate(0deg);
+      }
+      100% {
+        transform: translate(-50%, 0) rotate(-360deg);
+      }
+    }
   }
 }
 </style>

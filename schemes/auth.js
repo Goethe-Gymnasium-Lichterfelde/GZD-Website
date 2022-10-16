@@ -19,14 +19,15 @@ export default class CustomScheme extends LocalScheme {
         })
 
         user = await user.json()
-        this.$auth.setUserToken(token.token)
+        this.$auth.strategy.token.set(token.token)
+        this.$auth.strategy.token.sync()
         this.$auth.setUser(user)
 
         return user
     }
 
     async logout () {
-        this.$auth.setUserToken('')
+        this.$auth.strategy.token.set(null)
         this.$auth.setUser({})
         return true
     }
@@ -35,7 +36,7 @@ export default class CustomScheme extends LocalScheme {
         let user = await fetch('http://localhost:3001/nextcloud/me', {
             method: 'GET',
             headers: {
-                'x-auth-token': this.$auth.getToken('local')
+                'x-auth-token': this.$auth.strategy.token.get().replace('Bearer ', '')
             }
         }).catch(err => {
             console.log(err)

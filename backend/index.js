@@ -11,6 +11,8 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
     console.log(err)
 })
 
+app.use(express.json())
+
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*")
     res.header("Access-Control-Allow-Methods", "GET, PUT, POST")
@@ -20,6 +22,8 @@ app.use(function (req, res, next) {
 
 app.use('/dsb', require('./routes/dsb'))
 app.use('/nextcloud', require('./routes/nextcloud'))
+app.use('/projects', require('./routes/projects'))
+app.use('/mail', require('./routes/mail'))
 
 app.listen(3001, () => {
     console.log('Server is running on port 3001')

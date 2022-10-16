@@ -68,8 +68,20 @@ export default {
         close() {
             this.$emit("close")
         },
-        create() {
+        async create() {
             this.loading = true
+            const req = await this.$axios.$post('http://localhost:3001/projects/', {
+                owner: this.$auth.user._id,
+                name: this.name,
+                description: this.description,
+                tags: this.tags,
+                banner: this.file
+            }, {
+                headers: {
+                    'x-auth-token': this.$auth.strategy.token.get().replace('Bearer ', '')
+                }
+            })
+            console.log(req)
         }
     },
     watch: {

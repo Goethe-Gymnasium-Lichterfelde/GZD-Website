@@ -27,14 +27,14 @@ const projectSchema = new mongoose.Schema({
 const Project = mongoose.model('Projects', projectSchema)
 
 function validateProject(project) {
-    const schema = {
+    const schema = Joi.object({
         owner: Joi.string().required(),
         name: Joi.string().min(3).max(255).required(),
         description: Joi.string().min(3).max(255),
         banner: Joi.string().min(3).max(255)
-    }
+    })
 
-    return Joi.validate(project, schema)
+    return schema.validate(project)
 }
 
 exports.Project = Project

@@ -43,6 +43,18 @@ export default {
                 this.sync = false
             }, 2000);
         }
+    },
+    mounted() {
+        this.$axios({
+            method: 'post',
+            url: 'http://localhost:3001/mail/auth',
+            data: {
+                username: 'Mateo.Meillon',
+                password: 'Goethe2018'
+            }
+        }).then(res => {
+            console.log(res.data)
+        })
     }
 }
 </script>
