@@ -3,32 +3,37 @@ const router = express.Router()
 const auth = require('../middleware/auth')
 const Imap = require('imap')
 const inspect = require('util').inspect
+const server = require('http').createServer()
+const io = require('socket.io')(server)
 
-router.post('/auth', async (req, res) => {
-    var imap = new Imap({
-        user: req.body.user,
-        password: req.body.password,
-        host: 'kopano.b-sz-ggyl.logoip.de',
-        port: 993,
-        tls: true,
-        tlsOptions: {
-            rejectUnauthorized: false
-        }
+io.on('connection', client => {
+    let imap = null
+
+    client.on('disconnect', () => {})
+    client.on('connect', data => {
+        imap = new Imap({
+            user: data.user,
+            password: data.password,
+            host: 'kopano.b-sz-ggyl.logoip.de',
+            port: 993,
+            tls: true,
+            tlsOptions: {
+                rejectUnauthorized: false
+            }
+        })
+
+        imap.once('ready', function () {
+            client.send('ready', true)
+        })
+    
+        imap.once('error', function (err) {
+            client.send('error', { message: err })
+        })
     })
 
-    imap.once('ready', function () {
-        res.status(200).send('OK')
-    })
-
-    imap.once('error', function (err) {
-        res.status(500).send(err)
-    })
-
-    imap.once('end', function () {
-        console.log('Connection ended')
-    })
-
-    imap.connect()
+    client.on('')
 })
 
-module.exports = router;
+server.listen(3050)
+
+module.exports = router
