@@ -42,8 +42,17 @@ export default {
     '@nuxt/content',
     ['cookie-universal-nuxt', { alias: 'cook' }],
     '@nuxtjs/axios',
-    '@nuxtjs/auth-next'
+    '@nuxtjs/auth-next',
+    'nuxt-socket-io'
   ],
+
+  io: {
+    // module options
+    sockets: [{
+      name: 'mail',
+      url: 'http://localhost:3050'
+    }]
+  },
 
   auth: {
     strategies: {

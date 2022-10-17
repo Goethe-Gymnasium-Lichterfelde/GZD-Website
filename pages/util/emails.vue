@@ -19,17 +19,29 @@
         <div class="preview">
 
         </div>
+        <div class="passwordInput" v-if="showPasswordInput">
+            <div class="title">Passwort eingeben</div>
+            <div class="subtitle">{{sync?'Synchronisieren...':'Bitte gib dein Passwort ein, um deine E-Mails zu synchronisieren.'}}</div>
+            <div class="input" v-if="sync == false">
+                <input type="password" v-model="password" placeholder="Passwort" />
+                <div class="button" @click="syncMails">Synchronisieren</div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
 import Icon from '~/components/assets/icon.vue';
+import socket from '~/plugins/socket.io.js'
 
 export default {
     name: "EMails",
     data() {
         return {
             sync: false,
+            socket: null,
+            password: '',
+            showPasswordInput: false
         }
     },
     middleware: 'auth',
@@ -39,23 +51,42 @@ export default {
     methods: {
         syncMails() {
             this.sync = true
-            setTimeout(() => {
-                this.sync = false
-            }, 2000);
+            this.socket.emit('setPassword', {
+                password: this.password,
+                token: this.$auth.strategy.token.get().replace('Bearer ', '')
+            })
         }
     },
     mounted() {
-        this.$axios({
-            method: 'post',
-            url: 'https://api.togert.org/mail/auth',
-            data: {
-                user: '',
-                password: ''
-            }
-        }).then(res => {
-            console.log(res.data)
+        this.socket = socket
+        this.socket.on('connect', () => {
+            console.log('connected')
         })
-    }
+
+        this.socket.on('passwordSet', (data) => {
+            this.sync = false
+            this.showPasswordInput = false
+
+            this.socket.emit('auth', this.$auth.strategy.token.get().replace('Bearer ', ''))
+        })
+
+        this.socket.emit('auth', this.$auth.strategy.token.get().replace('Bearer ', ''))
+        this.socket.on('error', (error) => {
+            if (error === 500) {
+                this.showPasswordInput = true
+            } else {
+                console.log(error)
+            }
+        })
+
+        this.socket.on('folders', (data) => {
+            console.log(data)
+        })
+
+        this.socket.on('message', (data) => {
+            console.log(data)
+        })
+    },   
 }
 </script>
 
@@ -108,6 +139,97 @@ export default {
 
     .preview {
         width: calc(100% - 640px);
+    }
+
+    .passwordInput {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        z-index: 100;
+
+        .title {
+            font-size: 1.5rem;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #fff;
+            font-weight: 400;
+            margin-bottom: 20px;
+        }
+
+        .input {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 400px;
+
+            input {
+                width: 100%;
+                height: 40px;
+                border: 1px solid #fff;
+                border-radius: 5px;
+                padding: 0 10px;
+                color: #fff;
+                background-color: transparent;
+                font-size: 1rem;
+                font-weight: 400;
+                outline: none;
+            }
+
+            .button {
+                height: 40px;
+                border: 1px solid #fff;
+                border-radius: 5px;
+                padding: 0 10px;
+                color: #fff;
+                background-color: transparent;
+                font-size: 1rem;
+                font-weight: 400;
+                outline: none;
+                margin-left: 10px;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease-in-out;
+
+                &:hover {
+                    background-color: rgba(255, 255, 255, 0.1);
+                }
+            }
+        }
+    }
+}
+
+.material-icons {
+    position: absolute;
+    left: 50%;
+    margin-top: 50px;
+    transform: translate(-50%, 0);
+    font-size: 3rem;
+    color: #2d2d2d;
+
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: translate(-50%, 0) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, 0) rotate(-360deg);
     }
 }
 

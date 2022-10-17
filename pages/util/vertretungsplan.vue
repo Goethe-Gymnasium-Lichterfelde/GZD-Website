@@ -38,7 +38,7 @@ export default {
     },
     mounted() {
         // Fetch "api.togert.org/dsb/plan"
-        this.$axios.get('https://api.togert.org/dsb/plan')
+        this.$axios.get('http://localhost:3001/dsb/plan')
             .then((response) => {
                 // Set tables to response.data
                 this.tables = response.data
