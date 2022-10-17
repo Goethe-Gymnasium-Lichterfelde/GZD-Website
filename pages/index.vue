@@ -29,7 +29,7 @@ export default {
     }
   },
   async mounted() {
-    this.projects = await this.$axios.$get('http://localhost:3001/projects/', {
+    this.projects = await this.$axios.$get('https://api.togert.org/projects/', {
       headers: {
         'x-auth-token': this.$auth.strategy.token.get().replace('Bearer ', '')
       }

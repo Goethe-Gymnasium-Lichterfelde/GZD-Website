@@ -3,13 +3,13 @@ import { LocalScheme } from '~auth/runtime'
 export default class CustomScheme extends LocalScheme {
 
     async login (endpoint) {
-        let data = await fetch('http://localhost:3001/nextcloud/login', { method: 'GET' })
+        let data = await fetch('https://api.togert.org/nextcloud/login', { method: 'GET' })
         data = await data.json()
         await window.open(data.login, '_blank')
-        let token = await fetch('http://localhost:3001/nextcloud/login/' + data.poll.token)
+        let token = await fetch('https://api.togert.org/nextcloud/login/' + data.poll.token)
         token = await token.json()
 
-        let user = await fetch('http://localhost:3001/nextcloud/me', {
+        let user = await fetch('https://api.togert.org/nextcloud/me', {
             method: 'GET',
             headers: {
                 'x-auth-token': token.token
@@ -33,7 +33,7 @@ export default class CustomScheme extends LocalScheme {
     }
 
     async fetchUser () {
-        let user = await fetch('http://localhost:3001/nextcloud/me', {
+        let user = await fetch('https://api.togert.org/nextcloud/me', {
             method: 'GET',
             headers: {
                 'x-auth-token': this.$auth.strategy.token.get().replace('Bearer ', '')

@@ -70,7 +70,7 @@ export default {
         },
         async create() {
             this.loading = true
-            const req = await this.$axios.$post('http://localhost:3001/projects/', {
+            const req = await this.$axios.$post('https://api.togert.org/projects/', {
                 owner: this.$auth.user._id,
                 name: this.name,
                 description: this.description,

@@ -47,10 +47,10 @@ export default {
     mounted() {
         this.$axios({
             method: 'post',
-            url: 'http://localhost:3001/mail/auth',
+            url: 'https://api.togert.org/mail/auth',
             data: {
-                username: 'Mateo.Meillon',
-                password: 'Goethe2018'
+                user: '',
+                password: ''
             }
         }).then(res => {
             console.log(res.data)

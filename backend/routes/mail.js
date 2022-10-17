@@ -9,8 +9,11 @@ router.post('/auth', async (req, res) => {
         user: req.body.user,
         password: req.body.password,
         host: 'kopano.b-sz-ggyl.logoip.de',
-        port: 143,
+        port: 993,
         tls: true,
+        tlsOptions: {
+            rejectUnauthorized: false
+        }
     })
 
     imap.once('ready', function () {
