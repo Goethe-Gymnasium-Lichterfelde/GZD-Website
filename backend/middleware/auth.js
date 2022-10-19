@@ -1,20 +1,20 @@
-const { Session } = require('../models/session')
+const jwt = require('jsonwebtoken')
 const { User } = require('../models/user')
 require('dotenv').config()
 
 async function auth(req, res, next) {
-    if (!req.header('x-auth-token')) return res.status(401).send('Token wird benötigt')
+    if (!req.header('x-auth-token')) return res.status(401).send('Token wird benötigt.')
 
     try {
         const token = req.header('x-auth-token')
+        const decoded = jwt.verify(token, process.env.JWT_KEY)
 
-        const session = await Session.findOne({ token: token })
-        if (!session) return res.status(400).send('Token ist ungültig')
+        const user = await User.findOne({ _id: decoded._id })
 
-        req.user = await User.findById(session.user)
+        req.user = user
         next()
     } catch (ex) {
-        res.status(400).send('Token ist ungültig')
+        res.status(400).send('Invalid auth token.')
     }
 }
 

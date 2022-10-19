@@ -4,57 +4,153 @@
             <div class="top">
                 <div class="mail">mateo.meillon</div>
                 <div class="options">
-                    <div @click="syncMails" :class="sync?'syncing':''"><Icon small>sync</Icon></div>
-                    <Icon small>search</Icon>
+                    <div :class="sync?'syncing':''"><Icon small>sync</Icon></div>
                     <Icon small>more_vert</Icon>
                 </div>
             </div>
-            <div class="folders">
-            
+            <div class="allfolders" v-if="boxes != null">
+                <div class="fol" @click="selectedFolder='INBOX'">
+                    <folder :selected="selectedFolder=='INBOX'" :folder="boxes.INBOX" name="Inbox"/>
+                </div>
+                <div class="fol" @click="selectedFolder='Sent Items'">
+                    <folder :selected="selectedFolder=='Sent Items'" :folder="boxes['Sent Items']" name="Gesendet" />
+                </div>
+                <div class="fol" @click="selectedFolder='Drafts'">
+                    <folder :selected="selectedFolder=='Drafts'" :folder="boxes.Drafts" name="Entwürfe" />
+                </div>
+                <div class="fol" @click="selectedFolder='Deleted Items'">
+                    <folder :selected="selectedFolder=='Deleted Items'" :folder="boxes['Deleted Items']" name="Mülleimer"/>
+                </div>
+                <div class="fol" @click="selectedFolder='Junk E-Mail'">
+                    <folder :selected="selectedFolder=='Junk E-Mail'" :folder="boxes['Junk E-Mail']" name="Spam"/>
+                </div>
             </div>
         </div>
         <div class="emails">
-
+            <div class="top">
+                <div class="title">
+                    <div class="name">{{
+                        selectedFolder=='INBOX'?'Inbox':
+                        selectedFolder=='Sent Items'?'Gesendet':
+                        selectedFolder=='Drafts'?'Entwürfe':
+                        selectedFolder=='Deleted Items'?'Mülleimer':
+                        selectedFolder=='Junk E-Mail'?'Spam':
+                        selectedFolder
+                    }}</div>
+                </div>
+                <div class="options">
+                    <Icon primary small nohover>search</Icon>
+                </div>
+            </div>
+            <div class="emails" v-if="emails != null">
+                <div class="email" v-for="email in emails" :key="email.uid" @click="openEmail(email)">
+                    <div class="from">{{email.from}}</div>
+                    <div class="subject">{{email.subject}}</div>
+                    <div class="date">{{email.date}}</div>
+                </div>
+                <div class="mails">
+                    <preview v-for="email in emails" :key="email.uid" :email="email" :open="email.uid==selectedEmail.uid" />
+                </div>
+            </div>
         </div>
         <div class="preview">
 
+        </div>
+        <div class="passwordInput" v-if="showPasswordInput">
+            <div class="title">Passwort eingeben</div>
+            <div class="subtitle">{{sync?'Synchronisieren...':'Bitte gib dein Kopano Passwort ein, um deine E-Mails zu synchronisieren.'}}</div>
+            <div class="input" v-if="sync == false">
+                <input type="password" v-model="password" placeholder="Passwort" />
+                <div class="button" @click="setPw">Synchronisieren</div>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
 import Icon from '~/components/assets/icon.vue';
+import socket from '~/plugins/socket.io.js'
+import folder from '~/components/email/folder.vue'
+import preview from '~/components/email/preview.vue'
 
 export default {
     name: "EMails",
     data() {
         return {
             sync: false,
+            socket: null,
+            password: '',
+            showPasswordInput: false,
+            boxes: null,
+            selectedFolder: 'INBOX',
+            emails: [],
+            page: 1,
+            perPage: 10,
+            selectedEmail: {}
         }
     },
     middleware: 'auth',
     components: { 
-        Icon
+        Icon,
+        folder,
+        preview
     },
     methods: {
-        syncMails() {
-            this.sync = true
-            setTimeout(() => {
+        async setPw() {
+            this.sync = true;
+            const req = await this.$axios.post('http://localhost:3001/mail/setpw', {
+                password: this.password
+            }, {
+                headers: {
+                    'x-auth-token': this.$auth.strategy.token.get().slice(7)
+                }
+            })
+
+            if (req.status == 200) {
+                this.showPasswordInput = false
                 this.sync = false
-            }, 2000);
-        }
+                this.syncMails()
+            }
+        },
+        async syncMails() {
+            this.socket.on('connect', () => { 
+                console.log('Bumm') 
+            })
+            this.sync = true;
+            this.socket.emit('config', { 
+                token: this.$auth.strategy.token.get().slice(7)
+            })
+            this.socket.on('falschPW', () => {
+                this.showPasswordInput = true
+                this.sync = false
+            })
+
+            this.socket.on('folders', (data) => {
+                this.sync = false
+                console.log(data)
+                this.boxes = data
+                this.getMails()
+            })
+        },
+        getMails() {
+            this.socket.emit('getMails', { 
+                folder: this.selectedFolder,
+                page: this.page,
+                perPage: this.perPage,
+            })
+            this.socket.on('mails', (data) => {
+                this.emails.push(data)
+            })
+        },
     },
     mounted() {
-        this.$axios({
-            method: 'post',
-            url: 'https://api.togert.org/mail/auth',
-            data: {
-                user: '',
-                password: ''
-            }
-        }).then(res => {
-            console.log(res.data)
-        })
+        this.socket = socket
+        this.syncMails()
+    },   
+    watch: {
+        selectedFolder() {
+            this.getMails()
+        }
     }
 }
 </script>
@@ -101,13 +197,130 @@ export default {
     }
 
     .emails {
-        width: 320px;
+        width: 420px;
         background-color: #f5f5f5;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        // box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        border-right: 1px solid #ddd;
+
+        .top {
+            height: 50px;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            padding: 0 20px;
+            width: 100%;
+            border-bottom: 1px solid #ddd;
+
+            .title {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+            }
+
+            .options {
+                position: absolute;
+                right: 10px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
     }
 
     .preview {
-        width: calc(100% - 640px);
+        width: calc(100% - 740px);
+    }
+
+    .passwordInput {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        z-index: 100;
+
+        .title {
+            font-size: 1.5rem;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #fff;
+            font-weight: 400;
+            margin-bottom: 20px;
+        }
+
+        .input {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 400px;
+
+            input {
+                width: 100%;
+                height: 40px;
+                border: 1px solid #fff;
+                border-radius: 5px;
+                padding: 0 10px;
+                color: #fff;
+                background-color: transparent;
+                font-size: 1rem;
+                font-weight: 400;
+                outline: none;
+            }
+
+            .button {
+                height: 40px;
+                border: 1px solid #fff;
+                border-radius: 5px;
+                padding: 0 10px;
+                color: #fff;
+                background-color: transparent;
+                font-size: 1rem;
+                font-weight: 400;
+                outline: none;
+                margin-left: 10px;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease-in-out;
+
+                &:hover {
+                    background-color: rgba(255, 255, 255, 0.1);
+                }
+            }
+        }
+    }
+}
+
+.material-icons {
+    position: absolute;
+    left: 50%;
+    margin-top: 50px;
+    transform: translate(-50%, 0);
+    font-size: 3rem;
+    color: #2d2d2d;
+
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: translate(-50%, 0) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, 0) rotate(-360deg);
     }
 }
 

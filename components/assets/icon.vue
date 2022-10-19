@@ -112,6 +112,7 @@ export default {
     transition: all 0.3s;
     z-index: 1000;
     cursor: default;
+    pointer-events: none;
 
     &.right {
         right: -10px;
@@ -164,6 +165,8 @@ export default {
 
 .small {
     .btn {
+        width: 40px;
+        height: 40px;
         padding: 10px;
         margin: 5px;
         .material-icons {
@@ -172,8 +175,20 @@ export default {
     }
 }
 
+.default {
+    .btn {
+        width: 60px;
+        height: 60px;
+        .material-icons {
+            font-size: 1.5rem;
+        }
+    }
+}
+
 .large {
     .btn {
+        width: 60px;
+        height: 60px;
         padding: 20px;
         margin: 15px;
         .material-icons {
