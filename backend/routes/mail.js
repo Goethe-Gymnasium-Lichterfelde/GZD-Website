@@ -25,6 +25,8 @@ const auth = require('../middleware/auth')
 
 io.on('connection', (client) => {
 
+    let imap = null
+
     client.on('config', async (data) => {
         
         const decoded = jwt.verify(data.token, process.env.JWT_KEY)
@@ -69,6 +71,39 @@ io.on('connection', (client) => {
         }
     })
 
+    client.on('getMails', (data) => {
+        const folder = data.folder
+        const page = data.page
+        const limit = data.perPage
+
+        console.log(page, limit)
+
+        imap.openBox(folder, true, function (err, box) {
+            if (err) throw err
+            let max = box.messages.total
+            if (((page * limit) + limit) <= box.messages.total)
+                max = (page * limit) + limit
+
+            const f = imap.seq.fetch(page * limit + ':' + max, {
+                bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
+                struct: true
+            })
+
+            f.on('message', function (msg, seqno) {
+                const prefix = '(#' + seqno + ') '
+                msg.on('body', function (stream, info) {
+                    let buffer = ''
+                    stream.on('data', function (chunk) {
+                        buffer += chunk.toString('utf8')
+                    })
+                    stream.once('end', function () {
+                        client.emit('mails', buffer)
+                    })
+                })
+            })
+        })
+
+    })
 })
 
 router.post('/setpw', auth, async (req, res) => {
