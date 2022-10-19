@@ -9,8 +9,22 @@
                     <Icon small>more_vert</Icon>
                 </div>
             </div>
-            <div class="folders">
-            
+            <div class="allfolders" v-if="boxes != null">
+                <div class="fol" @click="selectedFolder='INBOX'">
+                    <folder :selected="selectedFolder=='INBOX'" :folder="boxes.INBOX" name="Inbox"/>
+                </div>
+                <div class="fol" @click="selectedFolder='Sent Items'">
+                    <folder :selected="selectedFolder=='Sent Items'" :folder="boxes['Sent Items']" name="Gesendet" />
+                </div>
+                <div class="fol" @click="selectedFolder='Drafts'">
+                    <folder :selected="selectedFolder=='Drafts'" :folder="boxes.Drafts" name="Entwürfe" />
+                </div>
+                <div class="fol" @click="selectedFolder='Deleted Items'">
+                    <folder :selected="selectedFolder=='Deleted Items'" :folder="boxes['Deleted Items']" name="Mülleimer"/>
+                </div>
+                <div class="fol" @click="selectedFolder='Junk E-Mail'">
+                    <folder :selected="selectedFolder=='Junk E-Mail'" :folder="boxes['Junk E-Mail']" name="Spam"/>
+                </div>
             </div>
         </div>
         <div class="emails">
@@ -21,7 +35,7 @@
         </div>
         <div class="passwordInput" v-if="showPasswordInput">
             <div class="title">Passwort eingeben</div>
-            <div class="subtitle">{{sync?'Synchronisieren...':'Bitte gib dein Passwort ein, um deine E-Mails zu synchronisieren.'}}</div>
+            <div class="subtitle">{{sync?'Synchronisieren...':'Bitte gib dein Kopano Passwort ein, um deine E-Mails zu synchronisieren.'}}</div>
             <div class="input" v-if="sync == false">
                 <input type="password" v-model="password" placeholder="Passwort" />
                 <div class="button" @click="setPw">Synchronisieren</div>
@@ -33,6 +47,7 @@
 <script>
 import Icon from '~/components/assets/icon.vue';
 import socket from '~/plugins/socket.io.js'
+import folder from '~/components/email/folder.vue'
 
 export default {
     name: "EMails",
@@ -41,30 +56,48 @@ export default {
             sync: false,
             socket: null,
             password: '',
-            showPasswordInput: false
+            showPasswordInput: false,
+            boxes: null,
+            selectedFolder: 'INBOX',
         }
     },
     middleware: 'auth',
     components: { 
-        Icon
+        Icon,
+        folder
     },
     methods: {
         async setPw() {
             this.sync = true;
             const req = await this.$axios.post('http://localhost:3001/mail/setpw', {
                 password: this.password
+            }, {
+                headers: {
+                    'x-auth-token': this.$auth.strategy.token.get().slice(7)
+                }
             })
 
             if (req.status == 200) {
-                this.syncMails();
+                this.showPasswordInput = false
+                this.sync = false
+                this.syncMails()
             }
         },
         async syncMails() {
-            this.socket.on('connect', () => { console.log('Bumm') })
+            this.socket.on('connect', () => { 
+                console.log('Bumm') 
+            })
+            this.sync = true;
             this.socket.emit('config', { token: this.$auth.strategy.token.get().slice(7) })
             this.socket.on('falschPW', () => {
                 this.showPasswordInput = true
                 this.sync = false
+            })
+
+            this.socket.on('folders', (data) => {
+                this.sync = false
+                console.log(data)
+                this.boxes = data
             })
         }
     },
@@ -117,13 +150,13 @@ export default {
     }
 
     .emails {
-        width: 320px;
+        width: 420px;
         background-color: #f5f5f5;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     }
 
     .preview {
-        width: calc(100% - 640px);
+        width: calc(100% - 740px);
     }
 
     .passwordInput {

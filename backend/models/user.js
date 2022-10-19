@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
     },
     emailPassword: {
         type: String,
-        required: true
+        required: false
     },
     createdAt: {
         type: Date,

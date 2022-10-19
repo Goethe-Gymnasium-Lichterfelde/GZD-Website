@@ -46,8 +46,13 @@ io.on('connection', (client) => {
                 }
             })
 
-            imap.once('ready', function () {
+            imap.once('ready', async function () {
                 console.log('ready')
+
+                // Send the folder structure to the client
+                imap.getBoxes(function (err, boxes) {
+                    client.emit('folders', boxes)
+                })
             })
 
             imap.once('error', function (err) {
