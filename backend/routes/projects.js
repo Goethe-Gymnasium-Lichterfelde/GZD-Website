@@ -2,7 +2,6 @@ const express = require('express')
 const router = express.Router()
 const { Project, validate } = require('../models/project')
 const { User } = require('../models/user')
-const { Session } = require('../models/session')
 const auth = require('../middleware/auth')
 
 router.get('/', auth, async (req, res) => {

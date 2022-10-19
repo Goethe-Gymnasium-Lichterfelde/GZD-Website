@@ -2,7 +2,6 @@ const express = require('express')
 const router = express.Router()
 const axios = require('axios')
 const { User } = require('../models/user')
-const { Session } = require('../models/session')
 const auth = require('../middleware/auth')
 
 router.get('/login', async (req, res) => {
@@ -14,26 +13,6 @@ router.get('/login', async (req, res) => {
 router.get('/me', auth, async (req, res) => {
     res.status(200).send(req.user)
 })
-
-async function generateSession(user) {
-    let session = new Session({
-        user: user._id,
-        token: makeid(64)
-    })
-    session = await session.save()
-    return session.token
-}
-
-function makeid(length) {
-    var result = '';
-    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for (var i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() *
-            charactersLength));
-    }
-    return result;
-}
 
 router.get('/login/:token', async (req, res) => {
     // Run funtion every 2 seconds for the next 5 minutes
@@ -57,9 +36,9 @@ router.get('/login/:token', async (req, res) => {
                 displayName: data.data.loginName
             })
             await newUser.save()
-            res.status(200).send({ token: await generateSession(newUser) })
+            res.status(200).send({ token: newUser.generateAuthToken() })
         } else
-            res.status(200).send({ token: await generateSession(user) })
+            res.status(200).send({ token: user.generateAuthToken() })
     }, 2000)
 })
 

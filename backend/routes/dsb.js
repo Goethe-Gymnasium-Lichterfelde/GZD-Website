@@ -4,6 +4,7 @@ const axios = require('axios')
 const DSB = require('dsbapi')
 const dsb = new DSB(process.env.DSB_USN, process.env.DSB_PWD)
 const { parse } =  require('node-html-parser')
+const auth = require('../middleware/auth') 
 
 async function convWebsite(url) {
     const res = await axios.get(url)
@@ -34,7 +35,7 @@ async function convWebsite(url) {
     return plan
 }
 
-router.get('/plan', async (req, res) => {
+router.get('/plan', auth, async (req, res) => {
     dsb.fetch()
         .then(async data => {
             const plans = []

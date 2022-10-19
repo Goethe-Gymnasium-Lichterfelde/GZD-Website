@@ -65,8 +65,9 @@ export default {
         user: {
           property: 'user',
           autoFetch: true
-        }
-      }
+        },
+        tokenType: false
+      },
     },
     redirect: {
       login: '/login',
@@ -79,7 +80,7 @@ export default {
       options: {
         secure: true
       }
-    }
+    },
   },
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios

@@ -4,7 +4,7 @@
             <div class="top">
                 <div class="mail">mateo.meillon</div>
                 <div class="options">
-                    <div @click="syncMails" :class="sync?'syncing':''"><Icon small>sync</Icon></div>
+                    <div :class="sync?'syncing':''"><Icon small>sync</Icon></div>
                     <Icon small>search</Icon>
                     <Icon small>more_vert</Icon>
                 </div>
@@ -24,7 +24,7 @@
             <div class="subtitle">{{sync?'Synchronisieren...':'Bitte gib dein Passwort ein, um deine E-Mails zu synchronisieren.'}}</div>
             <div class="input" v-if="sync == false">
                 <input type="password" v-model="password" placeholder="Passwort" />
-                <div class="button" @click="syncMails">Synchronisieren</div>
+                <div class="button" @click="setPw">Synchronisieren</div>
             </div>
         </div>
     </div>
@@ -49,43 +49,28 @@ export default {
         Icon
     },
     methods: {
-        syncMails() {
-            this.sync = true
-            this.socket.emit('setPassword', {
-                password: this.password,
-                token: this.$auth.strategy.token.get().replace('Bearer ', '')
+        async setPw() {
+            this.sync = true;
+            const req = await this.$axios.post('http://localhost:3001/mail/setpw', {
+                password: this.password
+            })
+
+            if (req.status == 200) {
+                this.syncMails();
+            }
+        },
+        async syncMails() {
+            this.socket.on('connect', () => { console.log('Bumm') })
+            this.socket.emit('config', { token: this.$auth.strategy.token.get().slice(7) })
+            this.socket.on('falschPW', () => {
+                this.showPasswordInput = true
+                this.sync = false
             })
         }
     },
     mounted() {
         this.socket = socket
-        this.socket.on('connect', () => {
-            console.log('connected')
-        })
-
-        this.socket.on('passwordSet', (data) => {
-            this.sync = false
-            this.showPasswordInput = false
-
-            this.socket.emit('auth', this.$auth.strategy.token.get().replace('Bearer ', ''))
-        })
-
-        this.socket.emit('auth', this.$auth.strategy.token.get().replace('Bearer ', ''))
-        this.socket.on('error', (error) => {
-            if (error === 500) {
-                this.showPasswordInput = true
-            } else {
-                console.log(error)
-            }
-        })
-
-        this.socket.on('folders', (data) => {
-            console.log(data)
-        })
-
-        this.socket.on('message', (data) => {
-            console.log(data)
-        })
+        this.syncMails()
     },   
 }
 </script>

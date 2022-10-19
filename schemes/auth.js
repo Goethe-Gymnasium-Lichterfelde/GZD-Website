@@ -2,7 +2,7 @@ import { LocalScheme } from '~auth/runtime'
 
 export default class CustomScheme extends LocalScheme {
 
-    async login (endpoint) {
+    async login () {
         let data = await fetch('http://localhost:3001/nextcloud/login', { method: 'GET' })
         data = await data.json()
         await window.open(data.login, '_blank')
@@ -41,9 +41,13 @@ export default class CustomScheme extends LocalScheme {
         }).catch(err => {
             console.log(err)
         })
-
-        user = await user.json()
-        this.$auth.setUser(user)
+        if (user.status == 200) {
+            user = await user.json()
+            this.$auth.setUser(user)
+        } else {
+            this.$auth.reset()
+        }
+        
         return user
     }
 
