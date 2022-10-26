@@ -17,6 +17,8 @@
     "imap": "^0.8.19",
     "joi": "^17.6.3",
     "jsonwebtoken": "^8.5.1",
+    "kindle-email-to-json": "^2.0.2",
+    "mailparser": "^3.5.0",
     "mongoose": "^6.6.5",
     "node-html-parser": "^6.1.1",
     "socket.io": "^4.5.3"

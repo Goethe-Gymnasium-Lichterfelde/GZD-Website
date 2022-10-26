@@ -43,11 +43,6 @@
                 </div>
             </div>
             <div class="emails" v-if="emails != null">
-                <div class="email" v-for="email in emails" :key="email.uid" @click="openEmail(email)">
-                    <div class="from">{{email.from}}</div>
-                    <div class="subject">{{email.subject}}</div>
-                    <div class="date">{{email.date}}</div>
-                </div>
                 <div class="mails">
                     <preview v-for="email in emails" :key="email.uid" :email="email" :open="email.uid==selectedEmail.uid" />
                 </div>
@@ -69,7 +64,7 @@
 
 <script>
 import Icon from '~/components/assets/icon.vue';
-import socket from '~/plugins/socket.io.js'
+import io from 'socket.io-client'
 import folder from '~/components/email/folder.vue'
 import preview from '~/components/email/preview.vue'
 
@@ -112,40 +107,26 @@ export default {
                 this.syncMails()
             }
         },
-        async syncMails() {
-            this.socket.on('connect', () => { 
-                console.log('Bumm') 
-            })
-            this.sync = true;
-            this.socket.emit('config', { 
-                token: this.$auth.strategy.token.get().slice(7)
-            })
-            this.socket.on('falschPW', () => {
-                this.showPasswordInput = true
-                this.sync = false
-            })
-
-            this.socket.on('folders', (data) => {
-                this.sync = false
-                console.log(data)
-                this.boxes = data
-                this.getMails()
-            })
-        },
-        getMails() {
-            this.socket.emit('getMails', { 
-                folder: this.selectedFolder,
-                page: this.page,
-                perPage: this.perPage,
-            })
-            this.socket.on('mails', (data) => {
-                this.emails.push(data)
-            })
-        },
     },
     mounted() {
-        this.socket = socket
-        this.syncMails()
+        this.socket = io('http://localhost:3050', {
+            query: {
+                token: this.$auth.strategy.token.get().slice(7)
+            }
+        })
+
+        this.socket.on('email', (mail) => {
+            this.emails.push(mail)
+            this.emails = this.emails.sort((a, b) => {
+                return new Date(b.date) - new Date(a.date)
+            })
+        })
+
+        this.socket.on('error', (err) => {
+            console.log(err)
+            if (err == "0x01")
+                this.showPasswordInput = true
+        })
     },   
     watch: {
         selectedFolder() {

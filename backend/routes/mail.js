@@ -4,6 +4,7 @@ const Imap = require('imap')
 const inspect = require('util').inspect
 const server = require('http').createServer()
 const { User } = require('../models/user')
+const simpleParser = require('mailparser').simpleParser
 const io = require('socket.io')(server, {
     cors: {
         origin: '*',
@@ -23,87 +24,75 @@ const auth = require('../middleware/auth')
 //     }
 // })
 
-io.on('connection', (client) => {
+io.on('connection', async (client) => {
 
-    let imap = null
+    const token = client.handshake.query.token
+    let decoded = jwt.verify(token, process.env.JWT_KEY)
+    let user = await User.findOne({ _id: decoded._id })
 
-    client.on('config', async (data) => {
-        
-        const decoded = jwt.verify(data.token, process.env.JWT_KEY)
-        const user = await User.findOne({ _id: decoded._id })
+    // Check if emailPassword is set
+    if (!user.emailPassword) {
+        client.emit('error', "0x01")
+        client.disconnect()
+        return
+    }
 
-        console.log(user)
-        try {
-            const coded = user.emailPassword
-            const decoded = jwt.verify(coded, process.env.JWT_KEY)
+    const emailPassword = jwt.verify(user.emailPassword, process.env.JWT_KEY)
 
-            imap = new Imap({
-                user: user.displayName,
-                password: decoded,
-                host: 'kopano.b-sz-ggyl.logoip.de',
-                port: 993,
-                tls: true,
-                tlsOptions: {
-                    rejectUnauthorized: false
-                }
-            })
-
-            imap.once('ready', async function () {
-                console.log('ready')
-
-                // Send the folder structure to the client
-                imap.getBoxes(function (err, boxes) {
-                    client.emit('folders', boxes)
-                })
-            })
-
-            imap.once('error', function (err) {
-                console.log(err)
-            })
-
-            imap.once('end', function () {
-                console.log('Connection ended')
-            })
-
-            imap.connect()
-        } catch (ex) {
-            client.emit('falschPW')
+    let imap = new Imap({
+        user: user.displayName,
+        password: emailPassword,
+        host: 'kopano.b-sz-ggyl.logoip.de',
+        port: 993,
+        tls: true,
+        tlsOptions: {
+            rejectUnauthorized: false
         }
     })
 
-    client.on('getMails', (data) => {
-        const folder = data.folder
-        const page = data.page
-        const limit = data.perPage
+    imap.once('ready', function () {
+        function openInbox(folder, page, limit) {
+            imap.openBox(folder, true, function (err, box) {
+                if (err) throw err
+                console.log('Total messages: ' + box.messages.total)
+                console.log((box.messages.total - ((page + 1) * limit)) + ':' + (box.messages.total - (page * limit)))
 
-        console.log(page, limit)
+                const f = imap.seq.fetch((box.messages.total - ((page + 1) * limit)) + ':' + (box.messages.total - (page * limit)), {
+                    bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
+                    struct: true
+                })
 
-        imap.openBox(folder, true, function (err, box) {
-            if (err) throw err
-            let max = box.messages.total
-            if (((page * limit) + limit) <= box.messages.total)
-                max = (page * limit) + limit
-
-            const f = imap.seq.fetch(page * limit + ':' + max, {
-                bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
-                struct: true
-            })
-
-            f.on('message', function (msg, seqno) {
-                const prefix = '(#' + seqno + ') '
-                msg.on('body', function (stream, info) {
-                    let buffer = ''
-                    stream.on('data', function (chunk) {
-                        buffer += chunk.toString('utf8')
-                    })
-                    stream.once('end', function () {
-                        client.emit('mails', buffer)
+                f.on('message', function (msg, seqno) {
+                    msg.on('body', function (stream, info) {
+                        let buffer = ''
+                        stream.on('data', function (chunk) {
+                            buffer += chunk.toString('utf8')
+                        })
+                        stream.once('end', async function () {
+                            client.emit('email', await simpleParser(buffer))
+                        })
                     })
                 })
+                f.once('error', function (err) {
+                    console.log('Fetch error: ' + err)
+                })
             })
-        })
+        } 
 
+        openInbox('INBOX', 0, 20)
     })
+
+    imap.once('error', function (err) {
+        console.log(err)
+        client.emit('error', "0x02")
+        client.disconnect()
+    })
+
+    imap.once('end', function () {
+        console.log('Connection ended')
+    })
+
+    imap.connect()
 })
 
 router.post('/setpw', auth, async (req, res) => {
