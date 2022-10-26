@@ -8,21 +8,21 @@
                     <Icon small>more_vert</Icon>
                 </div>
             </div>
-            <div class="allfolders" v-if="boxes != null">
+            <div class="allfolders">
                 <div class="fol" @click="selectedFolder='INBOX'">
-                    <folder :selected="selectedFolder=='INBOX'" :folder="boxes.INBOX" name="Inbox"/>
+                    <folder :selected="selectedFolder=='INBOX'" name="Inbox"/>
                 </div>
                 <div class="fol" @click="selectedFolder='Sent Items'">
-                    <folder :selected="selectedFolder=='Sent Items'" :folder="boxes['Sent Items']" name="Gesendet" />
+                    <folder :selected="selectedFolder=='Sent Items'" name="Gesendet" />
                 </div>
                 <div class="fol" @click="selectedFolder='Drafts'">
-                    <folder :selected="selectedFolder=='Drafts'" :folder="boxes.Drafts" name="Entwürfe" />
+                    <folder :selected="selectedFolder=='Drafts'" name="Entwürfe" />
                 </div>
                 <div class="fol" @click="selectedFolder='Deleted Items'">
-                    <folder :selected="selectedFolder=='Deleted Items'" :folder="boxes['Deleted Items']" name="Mülleimer"/>
+                    <folder :selected="selectedFolder=='Deleted Items'" name="Mülleimer"/>
                 </div>
                 <div class="fol" @click="selectedFolder='Junk E-Mail'">
-                    <folder :selected="selectedFolder=='Junk E-Mail'" :folder="boxes['Junk E-Mail']" name="Spam"/>
+                    <folder :selected="selectedFolder=='Junk E-Mail'" name="Spam"/>
                 </div>
             </div>
         </div>
@@ -42,10 +42,8 @@
                     <Icon primary small nohover>search</Icon>
                 </div>
             </div>
-            <div class="emails" v-if="emails != null">
-                <div class="mails">
-                    <preview v-for="email in emails" :key="email.uid" :email="email" :open="email.uid==selectedEmail.uid" />
-                </div>
+            <div class="mails scrollbar" v-if="emails != null">
+                <preview v-for="email in emails" :key="email.uid" :email="email" :open="email.uid==selectedEmail.uid" />
             </div>
         </div>
         <div class="preview">
@@ -79,7 +77,7 @@ export default {
             boxes: null,
             selectedFolder: 'INBOX',
             emails: [],
-            page: 1,
+            page: 0,
             perPage: 10,
             selectedEmail: {}
         }
@@ -106,6 +104,14 @@ export default {
                 this.sync = false
                 this.syncMails()
             }
+        },
+        async getMails() {
+            this.emails = []
+            this.socket.emit('folder', {
+                folder: this.selectedFolder,
+                page: this.page,
+                perPage: this.perPage
+            })
         },
     },
     mounted() {
@@ -182,6 +188,7 @@ export default {
         background-color: #f5f5f5;
         // box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         border-right: 1px solid #ddd;
+        height: 100vh;
 
         .top {
             height: 50px;
@@ -206,6 +213,11 @@ export default {
                 align-items: center;
                 justify-content: center;
             }
+        }
+
+        .mails {
+            height: calc(100% - 50px);
+            overflow-y: auto;
         }
     }
 

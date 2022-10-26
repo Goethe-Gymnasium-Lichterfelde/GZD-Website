@@ -21,7 +21,7 @@ import Icon from '~/components/assets/icon.vue';
 
 export default {
     name: 'folder',
-    props: ['name', 'folder', 'selected'],
+    props: ['name', 'selected'],
     components: {
         Icon
     }

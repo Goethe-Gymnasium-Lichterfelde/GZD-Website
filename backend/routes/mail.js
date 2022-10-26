@@ -29,6 +29,7 @@ io.on('connection', async (client) => {
     const token = client.handshake.query.token
     let decoded = jwt.verify(token, process.env.JWT_KEY)
     let user = await User.findOne({ _id: decoded._id })
+    let folder = 'INBOX'
 
     // Check if emailPassword is set
     if (!user.emailPassword) {
@@ -50,36 +51,47 @@ io.on('connection', async (client) => {
         }
     })
 
-    imap.once('ready', function () {
-        function openInbox(folder, page, limit) {
-            imap.openBox(folder, true, function (err, box) {
-                if (err) throw err
-                console.log('Total messages: ' + box.messages.total)
-                console.log((box.messages.total - ((page + 1) * limit)) + ':' + (box.messages.total - (page * limit)))
+    function openInbox(page, limit) {
+        imap.openBox(folder, true, function (err, box) {
+            if (err) throw err
+            console.log('Total messages: ' + box.messages.total)
+            console.log((box.messages.total - ((page + 1) * limit)) + ':' + (box.messages.total - (page * limit)))
 
-                const f = imap.seq.fetch((box.messages.total - ((page + 1) * limit)) + ':' + (box.messages.total - (page * limit)), {
-                    bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
-                    struct: true
-                })
+            if (box.messages.total == 0) {
+                client.emit('error', "0x03")
+                return
+            }
 
-                f.on('message', function (msg, seqno) {
-                    msg.on('body', function (stream, info) {
-                        let buffer = ''
-                        stream.on('data', function (chunk) {
-                            buffer += chunk.toString('utf8')
-                        })
-                        stream.once('end', async function () {
-                            client.emit('email', await simpleParser(buffer))
-                        })
+            let min = null
+
+            if ((box.messages.total - ((page + 1) * limit)) < 0) {
+                min = 1
+            }
+
+            const f = imap.seq.fetch((min!=null?min:(box.messages.total - ((page + 1) * limit))) + ':' + (box.messages.total - (page * limit)), {
+                bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
+                struct: true
+            })
+
+            f.on('message', function (msg, seqno) {
+                msg.on('body', function (stream, info) {
+                    let buffer = ''
+                    stream.on('data', function (chunk) {
+                        buffer += chunk.toString('utf8')
+                    })
+                    stream.once('end', async function () {
+                        client.emit('email', await simpleParser(buffer))
                     })
                 })
-                f.once('error', function (err) {
-                    console.log('Fetch error: ' + err)
-                })
             })
-        } 
+            f.once('error', function (err) {
+                console.log('Fetch error: ' + err)
+            })
+        })
+    }
 
-        openInbox('INBOX', 0, 20)
+    imap.once('ready', function () {
+        openInbox(0, 20)
     })
 
     imap.once('error', function (err) {
@@ -90,6 +102,16 @@ io.on('connection', async (client) => {
 
     imap.once('end', function () {
         console.log('Connection ended')
+    })
+
+    client.on('folder', (data) => {
+        folder = data.folder || 'INBOX'
+        const page = data.page || 0
+        const limit = data.limit || 20
+        if (imap.state !== 'authenticated')
+            imap.connect()
+        else
+            openInbox(page, limit)
     })
 
     imap.connect()
