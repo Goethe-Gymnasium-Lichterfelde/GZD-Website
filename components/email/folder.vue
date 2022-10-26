@@ -39,6 +39,7 @@ export default {
     color: #fff;
     display: inline-flex;
     align-items: center;
+    width: 100%;
 
     &:hover {
         background: rgb(36, 36, 36);

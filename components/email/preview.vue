@@ -1,8 +1,8 @@
 <template>
     <div>
         <div class="container">
-            <div class="left">
-                <div class="material-icons">drafts</div>
+            <div class="left" :class="read==true?'':'unread'">
+                <div class="material-icons">{{read==true?'drafts':'mail'}}</div>
             </div>
             <div class="right">
                 <div class="name">{{email.from.value[0].name }}</div>
@@ -18,7 +18,7 @@ import Icon from '~/components/assets/icon.vue';
 
 export default {
     name: 'preview',
-    props: ['email', 'open'],
+    props: ['email', 'open', 'read'],
     data() {
         return {
 
@@ -98,6 +98,15 @@ export default {
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
+        }
+    }
+
+    .unread {
+        background-color: rgb(82, 82, 82);
+
+        .material-icons {
+            color: #fff;
+            font-size: 20px;
         }
     }
 

@@ -63,10 +63,15 @@ io.on('connection', async (client) => {
             }
 
             let min = null
-
-            if ((box.messages.total - ((page + 1) * limit)) < 0) {
+            if ((box.messages.total - ((page + 1) * limit)) < 0)
                 min = 1
-            }
+            imap.search(['UNSEEN'], function (err, results) {
+                if (err) throw err
+                if (results.length > 0) {
+                    console.log('You have ' + results.length + ' unread messages')
+                    client.emit('unread', results.length)
+                }
+            })
 
             const f = imap.seq.fetch((min!=null?min:(box.messages.total - ((page + 1) * limit))) + ':' + (box.messages.total - (page * limit)), {
                 bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
@@ -74,13 +79,20 @@ io.on('connection', async (client) => {
             })
 
             f.on('message', function (msg, seqno) {
+
                 msg.on('body', function (stream, info) {
                     let buffer = ''
+                    let flags = null
                     stream.on('data', function (chunk) {
                         buffer += chunk.toString('utf8')
                     })
+                    msg.once('attributes', function (attrs) {
+                        flags = attrs.flags
+                    })
                     stream.once('end', async function () {
-                        client.emit('email', await simpleParser(buffer))
+                        let mail = await simpleParser(buffer)
+                        mail.flags = flags
+                        client.emit('email', mail)
                     })
                 })
             })
@@ -92,6 +104,17 @@ io.on('connection', async (client) => {
 
     imap.once('ready', function () {
         openInbox(0, 20)
+
+        imap.openBox('INBOX', true, function (err, box) {
+            if (err) throw err
+            imap.search(['UNSEEN'], function (err, results) {
+                if (err) throw err
+                if (results.length > 0) {
+                    console.log('You have ' + results.length + ' unread messages')
+                    client.emit('unread', results.length)
+                }
+            })
+        })
     })
 
     imap.once('error', function (err) {

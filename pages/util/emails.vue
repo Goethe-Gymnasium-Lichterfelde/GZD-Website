@@ -9,8 +9,11 @@
                 </div>
             </div>
             <div class="allfolders">
-                <div class="fol" @click="selectedFolder='INBOX'">
+                <div class="fol" style="position: relative;" @click="selectedFolder='INBOX'">
                     <folder :selected="selectedFolder=='INBOX'" name="Inbox"/>
+                    <div class="unread" :style="unreadMails > 0?'opacity: 100%;':'opacity: 0%;'">
+                        {{unreadMails}}
+                    </div>
                 </div>
                 <div class="fol" @click="selectedFolder='Sent Items'">
                     <folder :selected="selectedFolder=='Sent Items'" name="Gesendet" />
@@ -43,11 +46,18 @@
                 </div>
             </div>
             <div class="mails scrollbar" v-if="emails != null">
-                <preview v-for="email in emails" :key="email.uid" :email="email" :open="email.uid==selectedEmail.uid" />
+                <preview v-for="email in emails" :read="email.flags.includes('\\Seen')" :key="email.uid" :email="email" :open="email.uid==selectedEmail.uid" />
             </div>
         </div>
         <div class="preview">
-
+            <div class="top">
+                <div class="options">
+                    <Icon primary small nohover tooltipPosition="bottom" tooltip="Antworten">reply</Icon>
+                    <Icon primary small nohover tooltipPosition="bottom" tooltip="Allen antworten">reply_all</Icon>
+                    <Icon primary small nohover tooltipPosition="bottom" tooltip="Weiterleiten">forward</Icon>
+                    <Icon primary small nohover tooltipPosition="bottom" tooltip="Löschen">delete</Icon>
+                </div>
+            </div>
         </div>
         <div class="passwordInput" v-if="showPasswordInput">
             <div class="title">Passwort eingeben</div>
@@ -79,7 +89,8 @@ export default {
             emails: [],
             page: 0,
             perPage: 10,
-            selectedEmail: {}
+            selectedEmail: {},
+            unreadMails: 0
         }
     },
     middleware: 'auth',
@@ -112,7 +123,7 @@ export default {
                 page: this.page,
                 perPage: this.perPage
             })
-        },
+        }
     },
     mounted() {
         this.socket = io('http://localhost:3050', {
@@ -122,6 +133,7 @@ export default {
         })
 
         this.socket.on('email', (mail) => {
+            console.log(mail.flags)
             this.emails.push(mail)
             this.emails = this.emails.sort((a, b) => {
                 return new Date(b.date) - new Date(a.date)
@@ -133,6 +145,10 @@ export default {
             if (err == "0x01")
                 this.showPasswordInput = true
         })
+
+        this.socket.on('unread', (data) => {
+            this.unreadMails = data
+        })
     },   
     watch: {
         selectedFolder() {
@@ -143,6 +159,23 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.unread {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 10px;
+    background: rgb(63, 63, 63);
+    color: white;
+    font-weight: bold;
+    padding: 0 15px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 60px;
+    transition: all 0.2s ease;
+}
+
 .container {
     display: flex;
     flex-direction: row;
@@ -222,7 +255,33 @@ export default {
     }
 
     .preview {
-        width: calc(100% - 740px);
+        width: calc(100vw - 80px - (420px + 319.317px));
+        background-color: #fff;
+        height: 100vh;
+
+        .top {
+            height: 50px;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            width: 100%;
+            border-bottom: 1px solid #ddd;
+
+            .title {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+            }
+
+            .options {
+                position: absolute;
+                right: 10px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
     }
 
     .passwordInput {
