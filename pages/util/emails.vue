@@ -4,7 +4,7 @@
             <div class="top">
                 <div class="mail">mateo.meillon</div>
                 <div class="options">
-                    <div :class="sync?'syncing':''"><Icon small>sync</Icon></div>
+                    <!-- <div :class="sync?'syncing':''"><Icon small>sync</Icon></div> -->
                     <Icon small>more_vert</Icon>
                 </div>
             </div>
@@ -46,16 +46,39 @@
                 </div>
             </div>
             <div ref="mails" class="mails scrollbar" v-if="emails != null">
-                <preview v-for="email in emails" :read="email.flags.includes('\\Seen')" :key="email.uid" :email="email" :open="email.uid==selectedEmail.uid" />
+                <div 
+                    v-for="email in emails" 
+                    :key="email.uid" 
+                    @click="mail = email"
+                    class="mail_cont"
+                    :class="mail!=null?(email.uid==mail.uid?'selected':''):''"
+                >
+                    <preview :read="email.flags.includes('\\Seen')" :email="email" :open="email.uid==selectedEmail.uid" />
+                </div>
             </div>
         </div>
-        <div class="preview">
+        <div class="preview" v-if="mail != null">
             <div class="top">
+                <div class="leftoptions">
+                    <div @click="mail = null"><Icon primary small nohover tooltipPosition="bottom" tooltip="Schließen">close</Icon></div>
+                </div>
                 <div class="options">
                     <Icon primary small nohover tooltipPosition="bottom" tooltip="Antworten">reply</Icon>
                     <Icon primary small nohover tooltipPosition="bottom" tooltip="Allen antworten">reply_all</Icon>
                     <Icon primary small nohover tooltipPosition="bottom" tooltip="Weiterleiten">forward</Icon>
                     <Icon primary small nohover tooltipPosition="bottom" tooltip="Löschen">delete</Icon>
+                </div>
+            </div>
+            <div class="mail">
+                <div class="header">
+                    <div class="conta">
+                        <div v-for="fr in mail.from.value" v-bind:key="fr" class="name">{{fr.name==null?fr.address:fr.name}}</div>
+                        <div class="date">{{new Date(mail.date).toLocaleString()}}</div>
+                        <div class="subject">{{mail.subject}}</div>
+                    </div>
+                </div>
+                <div class="content">
+                    <div class="contb" v-html="mail.html!=false?mail.html:mail.textAsHtml"></div>
                 </div>
             </div>
         </div>
@@ -88,9 +111,11 @@ export default {
             selectedFolder: 'INBOX',
             emails: [],
             page: 0,
-            perPage: 10,
+            perPage: 20,
             selectedEmail: {},
-            unreadMails: 0
+            unreadMails: 0,
+            mail: null,
+            loading: false
         }
     },
     middleware: 'auth',
@@ -117,6 +142,7 @@ export default {
             }
         },
         async getMails() {
+            this.loading = true
             this.socket.emit('folder', {
                 folder: this.selectedFolder,
                 page: this.page,
@@ -126,6 +152,7 @@ export default {
     },
     mounted() {
         this.emails = []
+        this.loading = true
         this.socket = io('http://localhost:3050', {
             query: {
                 token: this.$auth.strategy.token.get().slice(7)
@@ -133,7 +160,14 @@ export default {
         })
 
         this.socket.on('email', (mail) => {
-            console.log(mail.flags)
+            if (mail.folder != this.selectedFolder)
+                return
+            const parser = new DOMParser()
+            const doc = parser.parseFromString((mail.html==false?mail.textAsHtml:mail.html), 'text/html')
+            const anchors = doc.getElementsByTagName('a')
+            for (let i = 0; i < anchors.length; i++)
+                anchors[i].setAttribute('target', '_blank')
+            mail.html==false?(mail.textAsHtml = doc.body.innerHTML):(mail.html = doc.body.innerHTML)
             this.emails.push(mail)
             this.emails = this.emails.sort((a, b) => {
                 return new Date(b.date) - new Date(a.date)
@@ -152,9 +186,15 @@ export default {
 
         this.$refs.mails.addEventListener('scroll', (e) => {
             if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight) {
+                if (this.loading == true)
+                    return
                 this.page++
                 this.getMails()
             }
+        })
+
+        this.socket.on('end', () => {
+            this.loading = false
         })
     },   
     watch: {
@@ -213,6 +253,14 @@ export default {
                 justify-content: center;
             }
 
+            .leftoptions {
+                position: absolute;
+                left: 10px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
             .mail {
                 color: #fff;
                 font-size: 1rem;
@@ -260,6 +308,22 @@ export default {
         .mails {
             height: calc(100% - 50px);
             overflow-y: auto;
+
+            .mail_cont {
+                transition: all 0.1s ease;
+            }
+
+            .selected {
+                // border-left: 4px solid #2d2d2d;
+                // background-color: #e4e4e4;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+
+                .container {
+                    &:hover {
+                        background-color: #e4e4e4 !important;
+                    }
+                }
+            }
         }
     }
 
@@ -267,6 +331,19 @@ export default {
         width: calc(100vw - 80px - (420px + 319.317px));
         background-color: #fff;
         height: 100vh;
+        animation: fadeIn 0.2s ease-in-out;
+        animation-fill-mode: forwards;
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
 
         .top {
             height: 50px;
@@ -283,12 +360,44 @@ export default {
                 font-weight: bold;
             }
 
+            .name {
+                font-weight: bold;
+                margin-left: 20px;
+                padding-top: 5px;
+            }
+
             .options {
                 position: absolute;
                 right: 10px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
+            }
+        }
+
+        .mail {
+            height: calc(100vh - 50px);
+            width: 100%;
+
+            .header {
+                width: 100%;
+
+                .conta {
+                    width: 100%;
+                    border-bottom: 1px solid #ddd;
+                    padding: 20px;
+                }
+            }
+
+            .content {
+                width: 100%;
+                padding: 20px;
+
+                .contb {
+                    width: 100%;
+                    height: 100%;
+                    overflow: auto;
+                }
             }
         }
     }

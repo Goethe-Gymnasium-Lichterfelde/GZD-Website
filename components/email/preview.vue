@@ -5,7 +5,7 @@
                 <div class="material-icons">{{read==true?'drafts':'mail'}}</div>
             </div>
             <div class="right">
-                <div class="name">{{email.from.value[0].name }}</div>
+                <div class="name">{{email.from.value[0].name==""?email.from.value[0].address:email.from.value[0].name}}</div>
                 <div class="date">{{new Date(email.date).toLocaleString()}}</div>
                 <div class="subject">{{email.subject}}</div>
             </div>

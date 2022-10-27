@@ -60,7 +60,7 @@ io.on('connection', async (client) => {
             }
 
             let min = null
-            if ((box.messages.total - ((page + 1) * limit)) <= 0)
+            if ((box.messages.total - ((page + 1) * limit)) + 1 <= 0)
                 min = 1
             imap.search(['UNSEEN'], function (err, results) {
                 if (err) throw err
@@ -68,14 +68,13 @@ io.on('connection', async (client) => {
                     client.emit('unread', results.length)
                 }
             })
-            if ((box.messages.total - (page * limit) - 1) < 0) {
+            if ((box.messages.total - (page * limit) - 1) <= 0) {
                 client.emit('error', "0x05")
                 return
             }
             // console.log((min != null ? min : (box.messages.total - ((page + 1) * limit))) + ':' + (box.messages.total - (page * limit) - 1))
-            const f = imap.seq.fetch((min!=null?min:(box.messages.total - ((page + 1) * limit))) + ':' + (box.messages.total - (page * limit) - 1), {
-                bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
-                struct: true
+            const f = imap.seq.fetch((min!=null?min:(box.messages.total - ((page + 1) * limit)) + 1) + ':' + (box.messages.total - (page * limit)), {
+                bodies: ""
             })
 
             f.on('message', function (msg, seqno) {
@@ -83,21 +82,28 @@ io.on('connection', async (client) => {
                 msg.on('body', function (stream, info) {
                     let buffer = ''
                     let flags = null
+                    let uid = null
                     stream.on('data', function (chunk) {
                         buffer += chunk.toString('utf8')
                     })
                     msg.once('attributes', function (attrs) {
                         flags = attrs.flags
+                        uid = attrs.uid
                     })
                     stream.once('end', async function () {
                         let mail = await simpleParser(buffer)
                         mail.flags = flags
+                        mail.uid = uid
+                        mail.folder = folder
                         client.emit('email', mail)
                     })
                 })
             })
             f.once('error', function (err) {
                 console.log('Fetch error: ' + err)
+            })
+            f.once('end', function () {
+                client.emit('end')
             })
         })
     }
