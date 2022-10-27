@@ -54,26 +54,26 @@ io.on('connection', async (client) => {
     function openInbox(page, limit) {
         imap.openBox(folder, true, function (err, box) {
             if (err) throw err
-            console.log('Total messages: ' + box.messages.total)
-            console.log((box.messages.total - ((page + 1) * limit)) + ':' + (box.messages.total - (page * limit)))
-
             if (box.messages.total == 0) {
                 client.emit('error', "0x03")
                 return
             }
 
             let min = null
-            if ((box.messages.total - ((page + 1) * limit)) < 0)
+            if ((box.messages.total - ((page + 1) * limit)) <= 0)
                 min = 1
             imap.search(['UNSEEN'], function (err, results) {
                 if (err) throw err
                 if (results.length > 0) {
-                    console.log('You have ' + results.length + ' unread messages')
                     client.emit('unread', results.length)
                 }
             })
-
-            const f = imap.seq.fetch((min!=null?min:(box.messages.total - ((page + 1) * limit))) + ':' + (box.messages.total - (page * limit)), {
+            if ((box.messages.total - (page * limit) - 1) < 0) {
+                client.emit('error', "0x05")
+                return
+            }
+            // console.log((min != null ? min : (box.messages.total - ((page + 1) * limit))) + ':' + (box.messages.total - (page * limit) - 1))
+            const f = imap.seq.fetch((min!=null?min:(box.messages.total - ((page + 1) * limit))) + ':' + (box.messages.total - (page * limit) - 1), {
                 bodies: ['HEADER.FIELDS (FROM TO SUBJECT DATE)'],
                 struct: true
             })
@@ -110,7 +110,6 @@ io.on('connection', async (client) => {
             imap.search(['UNSEEN'], function (err, results) {
                 if (err) throw err
                 if (results.length > 0) {
-                    console.log('You have ' + results.length + ' unread messages')
                     client.emit('unread', results.length)
                 }
             })

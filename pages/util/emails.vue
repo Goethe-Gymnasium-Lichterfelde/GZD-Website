@@ -45,7 +45,7 @@
                     <Icon primary small nohover>search</Icon>
                 </div>
             </div>
-            <div class="mails scrollbar" v-if="emails != null">
+            <div ref="mails" class="mails scrollbar" v-if="emails != null">
                 <preview v-for="email in emails" :read="email.flags.includes('\\Seen')" :key="email.uid" :email="email" :open="email.uid==selectedEmail.uid" />
             </div>
         </div>
@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import Icon from '~/components/assets/icon.vue';
+import Icon from '~/components/assets/icon.vue'
 import io from 'socket.io-client'
 import folder from '~/components/email/folder.vue'
 import preview from '~/components/email/preview.vue'
@@ -117,7 +117,6 @@ export default {
             }
         },
         async getMails() {
-            this.emails = []
             this.socket.emit('folder', {
                 folder: this.selectedFolder,
                 page: this.page,
@@ -126,6 +125,7 @@ export default {
         }
     },
     mounted() {
+        this.emails = []
         this.socket = io('http://localhost:3050', {
             query: {
                 token: this.$auth.strategy.token.get().slice(7)
@@ -149,9 +149,18 @@ export default {
         this.socket.on('unread', (data) => {
             this.unreadMails = data
         })
+
+        this.$refs.mails.addEventListener('scroll', (e) => {
+            if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight) {
+                this.page++
+                this.getMails()
+            }
+        })
     },   
     watch: {
         selectedFolder() {
+            this.emails = []
+            this.page = 0
             this.getMails()
         }
     }
