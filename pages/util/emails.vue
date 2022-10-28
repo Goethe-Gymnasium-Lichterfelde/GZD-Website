@@ -3,10 +3,10 @@
         <div class="folders">
             <div class="top">
                 <div class="mail">mateo.meillon</div>
-                <div class="options">
-                    <!-- <div :class="sync?'syncing':''"><Icon small>sync</Icon></div> -->
+                <!--<div class="options">
+                    <div :class="sync?'syncing':''"><Icon small>sync</Icon></div>
                     <Icon small>more_vert</Icon>
-                </div>
+                </div> -->
             </div>
             <div class="allfolders">
                 <div class="fol" style="position: relative;" @click="selectedFolder='INBOX'">
@@ -42,7 +42,9 @@
                     }}</div>
                 </div>
                 <div class="options">
-                    <Icon primary small nohover>search</Icon>
+                    <div class="search_container">
+                        <Icon primary small nohover>search</Icon>
+                    </div>
                 </div>
             </div>
             <div ref="mails" class="mails scrollbar" v-if="emails != null">
@@ -55,6 +57,10 @@
                 >
                     <preview :read="email.flags.includes('\\Seen')" :email="email" :open="email.uid==selectedEmail.uid" />
                 </div>
+            </div>
+            <div class="loading" :style="loading?'':'bottom: -50px'">
+                <div class="material-icons">hourglass_empty</div>
+                <div class="text">Laden...</div>
             </div>
         </div>
         <div class="preview" v-if="mail != null">
@@ -115,11 +121,11 @@ export default {
             selectedEmail: {},
             unreadMails: 0,
             mail: null,
-            loading: false
+            loading: true
         }
     },
     middleware: 'auth',
-    components: { 
+    components: {  
         Icon,
         folder,
         preview
@@ -228,13 +234,22 @@ export default {
 .container {
     display: flex;
     flex-direction: row;
-    height: 100%;
-    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 80px;
+    right: 0;
+    bottom: 0;
 
     .folders {
         width: 320px;
         background-color: #333;
         border-left: 1px solid #444;
+        position: fixed;
+        top: 0;
+        left: 80px;
+        bottom: 0;
+        overflow-y: auto;
+        z-index: 1;
 
         .top {
             height: 50px;
@@ -244,14 +259,6 @@ export default {
             padding: 0 20px;
             width: 100%;
             border-bottom: 1px solid #444;
-
-            .options {
-                position: absolute;
-                right: 10px;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-            }
 
             .leftoptions {
                 position: absolute;
@@ -273,12 +280,55 @@ export default {
         }
     }
 
+    .loading {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 10px;
+        z-index: 2;
+        background-color: #333;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 100px;
+        display: inline-flex;
+        align-items: center;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.2s ease;
+
+        .text {
+            margin-left: 10px;
+            margin-top: 2px;
+        }
+
+        .material-icons {
+            animation: spin 1s linear infinite;
+            font-size: 20px;
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+        }
+    }
+
     .emails {
         width: 420px;
         background-color: #f5f5f5;
         // box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         border-right: 1px solid #ddd;
         height: 100vh;
+        position: fixed;
+        overflow-y: hidden;
+        top: 0;
+        bottom: 0;
+        z-index: 1;
+        left: 400px;
 
         .top {
             height: 50px;
@@ -292,13 +342,13 @@ export default {
             .title {
                 display: inline-flex;
                 align-items: center;
-                justify-content: center;
                 font-weight: bold;
+                width: 100%;
             }
 
             .options {
                 position: absolute;
-                right: 10px;
+                right: 0px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -314,25 +364,22 @@ export default {
             }
 
             .selected {
-                // border-left: 4px solid #2d2d2d;
-                // background-color: #e4e4e4;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-
-                .container {
-                    &:hover {
-                        background-color: #e4e4e4 !important;
-                    }
-                }
+                border-left: 4px solid #2d2d2d;
+                background-color: #e4e4e4;
             }
         }
     }
 
     .preview {
-        width: calc(100vw - 80px - (420px + 319.317px));
         background-color: #fff;
         height: 100vh;
         animation: fadeIn 0.2s ease-in-out;
         animation-fill-mode: forwards;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 820px;
 
         @keyframes fadeIn {
             0% {
@@ -367,17 +414,18 @@ export default {
             }
 
             .options {
-                position: absolute;
-                right: 10px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
+                position: absolute;
+                right: 0px;
             }
         }
 
         .mail {
             height: calc(100vh - 50px);
             width: 100%;
+            position: relative;
 
             .header {
                 width: 100%;
@@ -391,13 +439,9 @@ export default {
 
             .content {
                 width: 100%;
+                height: calc(100vh - 50px - 100px);
                 padding: 20px;
-
-                .contb {
-                    width: 100%;
-                    height: 100%;
-                    overflow: auto;
-                }
+                overflow: auto;
             }
         }
     }
@@ -471,36 +515,6 @@ export default {
                 }
             }
         }
-    }
-}
-
-.material-icons {
-    position: absolute;
-    left: 50%;
-    margin-top: 50px;
-    transform: translate(-50%, 0);
-    font-size: 3rem;
-    color: #2d2d2d;
-
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% {
-        transform: translate(-50%, 0) rotate(0deg);
-    }
-    100% {
-        transform: translate(-50%, 0) rotate(-360deg);
-    }
-}
-
-.syncing { animation: spin 1s linear infinite; }
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(-360deg);
     }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
     <div 
-        class="container" 
+        class="icon_container" 
         :class="[
             (primary==true?'primary':secondary==true?'secondary':''),
             (small==true?'small':large==true?'large':'default'),
@@ -80,7 +80,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.container {
+.icon_container {
     position: relative;
 
     .btn {
