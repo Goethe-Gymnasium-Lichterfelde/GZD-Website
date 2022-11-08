@@ -77,6 +77,11 @@
             </div>
             <div class="mail">
                 <div class="header">
+                    <div class="profile_pic">
+                        <div class="initial" :style="'background-color: ' + getRamdomColor(mail.from.value[0].name[0].toUpperCase()) + '; color: white;'">
+                            {{mail.from.value[0].name[0].toUpperCase()}}
+                        </div>
+                    </div>
                     <div class="conta">
                         <div v-for="fr in mail.from.value" v-bind:key="fr" class="name">{{fr.name==null?fr.address:fr.name}}</div>
                         <div class="date">{{new Date(mail.date).toLocaleString()}}</div>
@@ -154,7 +159,36 @@ export default {
                 page: this.page,
                 perPage: this.perPage
             })
-        }
+        },
+        getRamdomColor(initial) {
+            // Generate a random color based on the initial of the user
+            const colors = [
+                '#F44336',
+                '#E91E63',
+                '#9C27B0',
+                '#673AB7',
+                '#3F51B5',
+                '#2196F3',
+                '#03A9F4',
+                '#00BCD4',
+                '#009688',
+                '#4CAF50',
+                '#8BC34A',
+                '#CDDC39',
+                '#FFEB3B',
+                '#FFC107',
+                '#FF9800',
+                '#FF5722',
+                '#795548',
+                '#9E9E9E',
+                '#607D8B'
+            ]
+            let sum = 0
+            for (let i = 0; i < initial.length; i++) {
+                sum += initial.charCodeAt(i)
+            }
+            return colors[sum % colors.length]
+        },
     },
     mounted() {
         this.emails = []
@@ -428,20 +462,66 @@ export default {
             position: relative;
 
             .header {
+                padding: 20px;
+                border-bottom: 1px solid #ddd;
+                display: inline-flex;
+                align-items: center;
+                justify-content: space-between;
                 width: 100%;
 
+                .initial {
+                    width: 50px;
+                    height: 50px;
+                    border-radius: 50%;
+                    background-color: #ddd;
+                    display: grid;
+                    place-items: center;
+                    overflow: hidden;
+                    margin-right: 20px;
+                    padding-top: 6px;
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                }
+
                 .conta {
-                    width: 100%;
-                    border-bottom: 1px solid #ddd;
-                    padding: 20px;
+                    display: inline-flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    width: calc(100% - 50px);
+                    overflow: hidden;
+
+                    .name {
+                        font-weight: bold;
+                        font-size: 1.2rem;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+
+                    .date {
+                        font-size: 0.8rem;
+                        color: #999;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+
+                    .subject {
+                        font-size: 0.8rem;
+                        color: #999;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
                 }
             }
 
             .content {
-                width: 100%;
-                height: calc(100vh - 50px - 100px);
                 padding: 20px;
-                overflow: auto;
+                font-size: 0.9rem;
+                line-height: 1.5;
+                overflow-y: auto;
+                height: calc(100vh - 50px - 100px);
             }
         }
     }
