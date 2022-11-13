@@ -478,7 +478,7 @@ export default {
                     place-items: center;
                     overflow: hidden;
                     margin-right: 20px;
-                    padding-top: 6px;
+                    // padding-top: 6px;
                     font-size: 1.5rem;
                     font-weight: bold;
                 }

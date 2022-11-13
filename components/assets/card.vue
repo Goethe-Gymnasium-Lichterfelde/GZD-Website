@@ -1,7 +1,7 @@
 <template>
     <div>
         <section>
-            <div class="image" :style="'background-image: url(' + project.image + ');'"></div>
+            <!-- <div class="image" :style="'background-image: url(' + project.image + ');'"></div> -->
             <div class="title">{{project.name}}</div>
             <div class="description">{{project.description}}</div>
             <div class="tags">
@@ -60,6 +60,11 @@ section {
         font-weight: 500;
         color: #333;
         transition: all 0.3s;
+
+        // Only one line of text and ellipsis
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .description {
