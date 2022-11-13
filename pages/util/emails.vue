@@ -78,12 +78,12 @@
             <div class="mail">
                 <div class="header">
                     <div class="profile_pic">
-                        <div class="initial" :style="'background-color: ' + getRamdomColor(mail.from.value[0].name[0].toUpperCase()) + '; color: white;'">
-                            {{mail.from.value[0].name[0].toUpperCase()}}
+                        <div class="initial" :style="'background-color: ' + getRamdomColor((mail.from.value[0].name[0]!=undefined?mail.from.value[0].name[0]:mail.from.value[0].address).toUpperCase()) + '; color: white;'">
+                            {{(mail.from.value[0].name[0]!=undefined?mail.from.value[0].name[0]:mail.from.value[0].address[0]).toUpperCase()}}
                         </div>
                     </div>
                     <div class="conta">
-                        <div v-for="fr in mail.from.value" v-bind:key="fr" class="name">{{fr.name==null?fr.address:fr.name}}</div>
+                        <div v-for="fr in mail.from.value" v-bind:key="fr" class="name">{{fr.name==undefined?fr.address:fr.name}}</div>
                         <div class="date">{{new Date(mail.date).toLocaleString()}}</div>
                         <div class="subject">{{mail.subject}}</div>
                     </div>

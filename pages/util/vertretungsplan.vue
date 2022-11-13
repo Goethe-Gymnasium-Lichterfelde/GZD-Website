@@ -1,27 +1,31 @@
 <template>
     <div>
-        <div class="tables">
-            <div v-for="(table, index) in tables" v-bind:key="index" class="table">
-                <div class="top">
-                    <div class="title">{{ table.name }}</div>
-                    <div class="date">geändert: {{ table.date }}</div>
+        <div class="top">
+
+        </div>
+        <div class="container">
+            <div class="cont stundenplan">
+                <div class="days">
+                    <div 
+                        class="day"
+                        v-for="(day, index) in days"
+                        :key="index"
+                        >
+                            {{ day }}
+                    </div>
                 </div>
-                <div class="af" v-for="(plan, index) in table.plan" v-bind:key="index" :class="plan.klasse=='Idle'?'idle':''">
-                    <div class="klasse">{{plan.klasse}}</div>
-                    <div class="stunde">{{plan.stunde}}</div>
-                    <div class="fach">{{plan.fach!=plan.fachInKlammern&&plan.fach!='---'?plan.fach:plan.fachInKlammern}}</div>
-                    <div class="raum">{{plan.neuerRaum}}</div>
-                    <div class="art"
-                        :class="[
-                            (plan.art=='Entfall'||plan.art=='EVA'?'ent':''),
-                            (plan.art=='Vertretung'?'ver':''),
-                            (plan.art=='Raum�nd.'?'ran':''),
-                            (plan.art=='Vertr.'?'ver':''),
-                            (plan.art=='Veranst.'?'anst':''),
-                            (plan.art=='Verlegung'?'vel':''),
-                        ]"
-                    >{{plan.art=='Raum�nd.'?'Raumänd.':plan.art}}</div>
+                <div class="rows">
+                    <div 
+                        class="row"
+                        v-for="(row, index) in rows"
+                        :key="index"
+                        >
+
+                    </div>
                 </div>
+            </div>
+            <div class="cont vertretungen">
+
             </div>
         </div>
     </div>
@@ -33,7 +37,17 @@ export default {
     middleware: 'auth',
     data() {
         return {
-            tables: []
+            tables: [],
+            days: [
+                'Montag',
+                'Dienstag',
+                'Mittwoch',
+                'Donnerstag',
+                'Freitag'
+            ],
+            rows: [
+                [],[],[],[],[]
+            ]
         }
     },
     mounted() {
@@ -73,142 +87,84 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.tables {
-    position: fixed;
-    top: 0;
-    left: 80px;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    .table {
-        height: 100vh;
-        width: 50%;
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
+.top {
+    height: 60px;
+    // box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+    background-color: #333;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 20px;
+    width: 100%;
+}
 
-        .top {
-            width: 100%;
-            height: 62px;
-            background-color: #1e1e1e;
-            padding: 10px 0 0 15px;
-            .title {
-                font-size: 20px;
-                font-weight: 500;
-                color: #fff;
-                margin-right: 10px;
-            }
-            .date {
-                font-size: 12px;
-                font-weight: 500;
-                color: rgba(255, 255, 255, 0.7);
-                margin-top: -5px;
-            }
-        }
+.container {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    height: calc(100vh - 100px);
 
-        .af {
-            width: 50%;
+    .cont {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: #fff;
+        border-radius: 4px;
+        margin: 0 10px;
+    }
+
+    .stundenplan {
+        background-color: #e9e9e9;
+        border-radius: 10px;
+
+        .days {
             display: inline-flex;
             align-items: center;
-            padding: 0 30px;
-            // border: 1px solid rgba(51, 51, 51, 0.1);
-            position: relative;
-            transition: all 0.2s ease-in-out;
-            cursor: pointer;
-            border-bottom: 1px solid rgba(51, 51, 51, 0.1);
-            border-right: 1px solid rgba(51, 51, 51, 0.1);
-            
-            &:hover {
-                background-color: rgba(51, 51, 51, 0.1);
-            }
+            width: 100%;
 
-            .klasse {
-                width: 20%;
-                font-size: 1.2em;
-                font-weight: 500;
-                color: #333;
-
-                // Overflow ellipsis
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
-            .stunde {
-                width: 20%;
-                font-size: 1.2em;
-                font-weight: 500;
-                color: #333;
-            }
-
-            .fach {
-                width: 30%;
-                font-size: 1.2em;
-                font-weight: 500;
-                color: #333;
-            }
-
-            .raum {
-                width: 20%;
-                font-size: 1.2em;
-                font-weight: 500;
-                color: #333;
-            }
-
-            .art {
-                position: absolute;
-                right: 5px;
+            .day {
+                width: 100%;
+                padding: 10px 0 5px 0;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 1.2em;
+                font-size: 1.2rem;
                 font-weight: 500;
-                padding: 5px 10px;
-                max-width: 20%;
-                color: #fff;
-                border-radius: 10px;
-                background: #333;
-
-                // Overflow ellipsis
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-
-                &.ent {
-                    background: #e74c3c;
-                }
-
-                &.ver {
-                    background: #2ecc71;
-                }
-
-                &.ran {
-                    background: #3498db;
-                }
-
-                &.vel {
-                    background: #f1c40f;
-                }
-
-                &.anst {
-                    background: #9b59b6;
-                }
+                background-color: #e0e0e0;
             }
+        }
+
+        .rows {
+            display: inline-flex;
+            width: 100%;
+
+            .row {
+                width: 100%;
+                height: 100%;
+                background-color: rgb(136, 51, 51);
+            }
+        }
+    }
+
+    .vertretungen {
+        background-color: #fff;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .container {
+        flex-direction: column;
+
+        .stundenplan {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .vertretungen {
+            width: 100%;
+            margin-left: 0;
         }
     }
 }
 
-.abheben {
-    background-color: rgb(241, 241, 241);
-}
-.idle {
-    .klasse {
-        opacity: 0;
-    }
-    .art {
-        display: none !important;
-    }
-}
 </style>
