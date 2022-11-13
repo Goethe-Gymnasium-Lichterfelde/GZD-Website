@@ -25,6 +25,14 @@ router.get('/:id', auth, async (req, res) => {
     res.send(Organisation)
 })
 
+router.get('/:id/membercount', auth, async (req, res) => {
+    const org = await Organisation.findById(req.params.id)
+        .select('-__v')
+    if (!org) return res.status(404).send('Die Organisation wurde nicht gefunden.')
+    const membercount = await Member.countDocuments({ organisation: org._id })
+    res.send({ membercount: membercount })
+})
+
 router.get('/:id/projects', auth, async (req, res) => {
     const limit = req.query.limit ? parseInt(req.query.limit) : 10
     const page = req.query.page ? parseInt(req.query.page) : 1
@@ -38,20 +46,30 @@ router.get('/:id/projects', auth, async (req, res) => {
 })
 
 router.post('/', auth, async (req, res) => {
-    req.body.banner = "   "
-    const { error } = validate(req.body)
+    const org = {
+        name: req.body.name,
+        description: req.body.description,
+        banner: "   "
+    }
+    const { error } = validate(org)
     if (error) return res.status(400).send(error.details[0].message)
 
     const user = await User.findById(req.body.owner)
     if (!user) return res.status(400).send('Der Benutzer wurde nicht gefunden.')
 
     const organisation = new Organisation({
-        owner: req.body.owner,
-        name: req.body.name,
-        description: req.body.description,
-        banner: req.body.banner
+        name: org.name,
+        description: org.description,
+        banner: org.banner
     })
     await organisation.save()
+
+    const member = new Member({
+        user: user._id,
+        organisation: organisation._id,
+        role: "owner"
+    })
+    await member.save()
 
     res.send(organisation)
 })

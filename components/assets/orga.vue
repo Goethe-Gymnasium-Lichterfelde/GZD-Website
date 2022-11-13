@@ -6,7 +6,7 @@
             <div class="members">
                 <!-- Number of members -->
                 <div class="material-icons">group</div>
-                <div class="number">3</div>
+                <div class="number">{{membercount}}</div>
             </div>
         </div>
     </div>
@@ -16,9 +16,26 @@
 export default {
     name: 'Organisation',
     props: ['orga'],
+    data() {
+        return {
+            membercount: 0
+        }
+    },
     mounted() {
         console.log(this.orga)
     },
+    methods: {
+        async getMemberCount() {
+            const res = await this.$axios.get('http://localhost:3001/organisations/' + this.orga._id + '/membercount', {
+                headers: {
+                    'x-auth-token': this.$auth.strategy.token.get().slice(7)
+                }
+            }).catch(err => {
+                console.log(err)
+            })
+            this.membercount = res.data.membercount
+        }
+    }
 }
 </script>
 

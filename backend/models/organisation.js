@@ -10,10 +10,6 @@ const organisationSchema = new mongoose.Schema({
         type: String,
         required: false
     },
-    owner: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-    },
     banner: {
         type: String,
         required: false
@@ -30,7 +26,6 @@ function validateOrganisation(organisation) {
     const schema = Joi.object({
         name: Joi.string().min(3).max(255).required(),
         description: Joi.string().min(3).max(255),
-        owner: Joi.string().required(),
         banner: Joi.string().min(3).max(255)
     })
 

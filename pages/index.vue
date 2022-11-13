@@ -33,7 +33,9 @@
       <h1>Arbeitsgemeinschaften (AGs)</h1>
     </div>
     <!-- Slider -->
-    <Slider :list="orgas"></Slider>
+    <div class="wrapper">
+      <Slider :list="orgas"></Slider>
+    </div>
   </div>
 </template>
 

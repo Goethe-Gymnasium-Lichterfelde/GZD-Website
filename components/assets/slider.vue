@@ -124,11 +124,11 @@ export default {
         }
     
         &.left {
-            left: 10px;
+            left: 5px;
         }
     
         &.rigth {
-            right: 10px;
+            right: 5px;
         }
 
         &.disabled {
