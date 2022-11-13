@@ -24,6 +24,6 @@ export default {
     right: 0;
     bottom: 0;
     overflow: auto;
-    // background-color: #1e1e1e;
+    // background-color: #1e1e1e
 }
 </style>

@@ -6,6 +6,10 @@ const projectSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
     },
+    organisation: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Organisation',
+    },
     name: {
         type: String,
         required: true
@@ -16,6 +20,10 @@ const projectSchema = new mongoose.Schema({
     },
     banner: {
         type: String,
+        required: false
+    },
+    tags: {
+        type: Array,
         required: false
     },
     createdAt: {
@@ -30,8 +38,10 @@ function validateProject(project) {
     const schema = Joi.object({
         owner: Joi.string().required(),
         name: Joi.string().min(3).max(255).required(),
+        organisation: Joi.string().required(),
         description: Joi.string().min(3).max(255),
-        banner: Joi.string().min(3).max(255)
+        banner: Joi.string().min(3).max(255),
+        tags: Joi.array().items(Joi.string())
     })
 
     return schema.validate(project)

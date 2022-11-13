@@ -1,129 +1,182 @@
 <template>
-  <div class="wrapper">
-    <div class="banner" style="background-image: url(https://www.goethe-gymnasium-lichterfelde.de/assets/backgrounds/bg1.webp)">
-      <div class="overlay">
-        <div class="title">Goethe Gymnasium Lichterfelde Berlin</div>
-        <div class="subtitle">Das Schulforum</div>
+  <div>
+    <div style="width: 100%; height: 40px;"></div>
+    <div class="wrapper">
+      <div class="grid">
+        <div class="box red">
+          <div class="material-icons">handshake</div>
+          Schüler helfen Schüler
+        </div>
+        <div class="box orange">
+          <div class="material-icons">filter_list</div>
+          Projekte
+        </div>
+        <nuxt-link to="/util/vertretungsplan"><div class="box blue">
+          <div class="material-icons">next_plan</div>
+          Vertretungsplan
+        </div></nuxt-link>
+        <nuxt-link to="/util/emails"><div class="box lila">
+          <div class="material-icons">mail</div>
+          E-Mails
+        </div></nuxt-link>
+        <div class="box green">
+          <div class="material-icons">event</div>
+          Kalender
+        </div>
+        <div class="box darkgreen">
+          <div class="material-icons">group</div>
+          Arbeitsgemeinschaften
+        </div>
       </div>
     </div>
-    <div class="projects">
-      <span v-if="loading" class="material-icons">sync</span>
-      <Card v-else :project="project" v-for="project in projects" :key="project.id" />
-    </div><!-- <br><br>
-    <div class="title">Arbeitsgemeinschaften</div>
-    <div class="subtitle">Hier findest du alle AG's, die es an unserer Schule gibt.</div> -->
+    <div class="title">
+      <h1>Arbeitsgemeinschaften (AGs)</h1>
+    </div>
+    <!-- Slider -->
+    <Slider :list="orgas"></Slider>
   </div>
 </template>
 
 <script>
-import Card from '~/components/assets/card.vue'
+import Organisation from '~/components/assets/orga.vue'
+import Slider from '~/components/assets/slider.vue'
 
 export default {
-  name: "IndexPage",
-  components: { Card },
-  middleware: 'auth',
+  name: 'Index',
+  components: {
+    Organisation,
+    Slider
+  },
   data() {
     return {
-      projects: [],
-      loading: true,
+      orgas: []
     }
   },
-  async mounted() {
-    this.projects = await this.$axios.$get('http://localhost:3001/projects/', {
+  mounted() {
+    this.$axios.get('http://localhost:3001/organisations', {
       headers: {
-        'x-auth-token': this.$auth.strategy.token.get().replace('Bearer ', '')
+        'x-auth-token': this.$auth.strategy.token.get().slice(7)
       }
+    }).then(res => {
+      this.orgas = res.data
+    }).catch(err => {
+      console.log(err)
     })
-      .catch((error) => {
-        console.log(error)
-      })
-    this.loading = false
-  },
+  }
 }
 </script>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
+.wrapper {
+  width: 1200px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
 
-.banner {
-  width: calc(100% - 20px);
-  height: 40vh;
-  border-radius: 10px;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-  overflow: hidden;
-  margin: 10px;
-  margin-bottom: 20px;
-  .overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    .title {
-      font-size: 3rem;
-      color: white;
-      font-weight: 700;
+  .grid {
+    // Grid with 6 columns and 2 rows
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    grid-gap: 20px;
+    margin-top: 20px;
+
+    .box {
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      padding: 20px;
+      font-weight: bold;
+      font-size: large;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+
+      .material-icons {
+        font-size: 100px;
+        margin-bottom: 10px;
+      }
     }
-    .subtitle {
-      font-size: 1.5rem;
+
+    .lila {
+      background-color: #b38edd;
       color: white;
-      font-weight: 700;
+
+      &:hover {
+        background-color: #6f538f;
+      }
+    }
+
+    .blue {
+      background-color: #8e93dd;
+      color: white;
+
+      &:hover {
+        background-color: #57538f;
+      }
+    }
+
+    .green {
+      background-color: #8eddd3;
+      color: white;
+
+      &:hover {
+        background-color: #5f8f6f;
+      }
+    }
+
+    .red {
+      background-color: #dd8e8e;
+      color: white;
+
+      &:hover {
+        background-color: #8f5f5f;
+      }
+    }
+
+    .darkgreen {
+      background-color: #8eddb3;
+      color: white;
+
+      &:hover {
+        background-color: #5f8f5f;
+      }
+    }
+
+    .orange {
+      background-color: #ddc38e;
+      color: white;
+
+      &:hover {
+        background-color: #8f6f5f;
+      }
     }
   }
 }
 
-.wrapper {
+@media (max-width: 800px) {
+  .wrapper {
+    .grid {
+      grid-template-columns: 1fr;
+      grid-template-rows: repeat(6, 1fr);
+    }
+  }
+}
+
+.title {
   width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 20px;
-  padding-top: 40px;
-  max-width: calc(100% - 40px);
+  padding: 0 20px;
+  margin-top: 40px;
 
-  .title {
-    font-size: 2rem;
-    font-weight: 700;
-  }
-
-  .subtitle {
-    font-size: 1rem;
+  h1 {
+    font-size: 30px;
     font-weight: 200;
-    margin-top: -7px;
-    margin-bottom: 20px;
-  }
-
-  .projects {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    position: relative;
-
-    .material-icons {
-      position: absolute;
-      left: 50%;
-      margin-top: 50px;
-      transform: translate(-50%, 0);
-      font-size: 3rem;
-      color: #2d2d2d;
-
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% {
-        transform: translate(-50%, 0) rotate(0deg);
-      }
-      100% {
-        transform: translate(-50%, 0) rotate(-360deg);
-      }
-    }
   }
 }
 </style>

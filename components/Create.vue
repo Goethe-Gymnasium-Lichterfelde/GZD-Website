@@ -3,30 +3,43 @@
         <section>
             <div class="top">
                 <div>
-                    <div class="title">Neues Projekt</div>
-                    <div class="subtitle">Starte eine neue Initiative um das Goethe zu verändern!</div>
+                    <div class="title">{{type=='project'?'Neues Projekt':'Neue Arbeitsgemeinschaft'}}</div>
+                    <div class="subtitle">{{type=='project'?'Starte eine neue Initiative um das Goethe zu verändern!':'Erstelle deine Arbeitsgemeinschaft (AG) am Goethe Gymnasium!'}}</div>
                 </div>
                 <div @click="close()"><Icon small secondary>close</Icon></div>
             </div>
             <div class="content">
-                <a-input @value="name" placeholder="Name des Projektes" /><br><br>
+                <a-radio-group 
+                    v-model="type"
+                    button-style="solid"
+                    size="large"
+                    style="width: 100%;"
+                >
+                    <a-radio-button value="project">Projekt</a-radio-button>
+                    <a-radio-button value="organisation">Arbeitsgemeinschaft</a-radio-button>
+                </a-radio-group><br><br>
+                <a-input v-model="name" :placeholder="type=='project'?'Name des Projektes':'Name der AG z.B. Courage AG'" /><br><br>
                 <a-textarea
-                    @value="description"
-                    placeholder="Beschreibe die Idee von dienem Projekt in ein paar Sätzen"
+                    v-model="description"
+                    :maxlength="255"
+                    :placeholder="type=='project'?'Beschreibe die Idee von dienem Projekt in ein paar Sätzen':'Beschreibe was deine Arbeitsgemeinschaft ausmacht!'"
                     :auto-size="{ minRows: 3, maxRows: 10 }"
                 /><br><br>
-                <div class="tags">
+                <div class="tags" v-if="type=='project'">
                     <a-tag style="cursor: pointer;" :color="tags.includes(tag)?'pink':''" @click="check(tag) == false?tags.push(tag):tags = tags.filter(data => data != tag)" v-for="tag in options" :key="tag.value">{{ tag.label }}</a-tag>
                 </div><br>
-                <div class="upload">
+                <!-- <div class="upload" v-if="type!='project'">
                     <file-select v-model="file">Banner hochladen</file-select><br>
                     <p v-if="file">{{file.name}} <a @click="file = null">entfernen</a></p>
+                </div> -->
+                <div class="error" v-if="error">
+                    {{error}}
                 </div>
             </div>
             <div class="bottom">
                 <!-- Abbrechen btn -->
                 <a-button style="margin-right: 10px;" @click="close()">Abbrechen</a-button>
-                <a-button style="background-color: #333; border: none;" :loading="loading" @click="create()" type="primary">Projekt erstellen</a-button>
+                <a-button style="background-color: #333; border: none;" :loading="loading" @click="create()" type="primary">{{type=='project'?'Projekt erstellen':'AG erstellen'}}</a-button>
             </div>
         </section>
     </div>
@@ -51,13 +64,14 @@ export default {
             route: this.$route.path,
             loading: false,
             file: null,
+            error: null,
+            type: "project",
             options: [
                 { label: "Für alle", value: "Alle" },
                 { label: "Oberstufe", value: "Oberstufe" },
                 { label: "Mittelstufe", value: "Mittelstufe" },
-                { label: "Schulhof", value: "Schulhof" },
-                { label: "Turnhalle", value: "Turnhalle" },
-                { label: "Gebäude", value: "Gebäude" }
+                { label: "Aktivität", value: "Aktivität" },
+                { label: "Veranstaltung", value: "Veranstaltung" },
             ],
         }
     },
@@ -70,18 +84,57 @@ export default {
         },
         async create() {
             this.loading = true
-            const req = await this.$axios.$post('http://localhost:3001/projects/', {
-                owner: this.$auth.user._id,
-                name: this.name,
-                description: this.description,
-                tags: this.tags,
-                banner: this.file
-            }, {
-                headers: {
-                    'x-auth-token': this.$auth.strategy.token.get().replace('Bearer ', '')
+
+            if (this.type == 'project') {
+                    const req = await this.$axios.$post('http://localhost:3001/projects/', {
+                    owner: this.$auth.user._id,
+                    name: this.name,
+                    description: this.description,
+                    tags: this.tags,
+                    banner: this.file
+                }, {
+                    headers: {
+                        'x-auth-token': this.$auth.strategy.token.get().replace('Bearer ', '')
+                    }
+                }).catch(err => {
+                    this.error = err.response.data
+                    this.loading = false
+                })
+
+                if (req) {
+                    this.loading = false
+                    this.name = ""
+                    this.description = ""
+                    this.tags = []
+                    this.file = null
+                    this.error = null
+                    this.$router.push('/ag/' + + '/' + req._id)
                 }
-            })
-            console.log(req)
+            } else {
+                const req = await this.$axios.$post('http://localhost:3001/organisations/', {
+                    owner: this.$auth.user._id,
+                    name: this.name,
+                    description: this.description,
+                    banner: this.file
+                }, {
+                    headers: {
+                        'x-auth-token': this.$auth.strategy.token.get().replace('Bearer ', '')
+                    }
+                }).catch(err => {
+                    this.error = err.response.data
+                    this.loading = false
+                })
+
+                if (req) {
+                    this.loading = false
+                    this.name = ""
+                    this.description = ""
+                    this.tags = []
+                    this.file = null
+                    this.error = null
+                    this.$router.push('/ag/' + req._id)
+                }
+            }
         }
     },
     watch: {
@@ -157,5 +210,16 @@ section {
         display: flex;
         justify-content: flex-end;
     }
+}
+
+.error {
+    width: 100%;
+    padding: 10px;
+    background-color: #f5222d;
+    color: #fff;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #b3232a;
+    font-weight: bold;
 }
 </style>
