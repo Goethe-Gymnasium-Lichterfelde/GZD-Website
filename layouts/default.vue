@@ -1,7 +1,7 @@
 <template>
     <div>
         <Navigation />
-        <div class="container">
+        <div class="container scrollbar">
             <!-- <div class="warpper">
                 <nuxt />
             </div> -->

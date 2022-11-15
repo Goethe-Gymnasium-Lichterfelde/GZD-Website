@@ -35,6 +35,9 @@ export default {
             })
             this.membercount = res.data.membercount
         }
+    },
+    created() {
+        this.getMemberCount()
     }
 }
 </script>

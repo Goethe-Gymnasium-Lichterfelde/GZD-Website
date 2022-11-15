@@ -4,14 +4,15 @@
             <Icon :primary="route == '/'" to="/" tooltip="Startseite">home</Icon>
             <Icon :primary="route == '/util/emails'" to="/util/emails" tooltip="E-Mails">mail</Icon>
             <Icon :primary="route == '/util/vertretungsplan'" to="/util/vertretungsplan" tooltip="Vertretungsplan">schedule</Icon>
-            <Icon :primary="route == '/util/kalender'" to="/util/kalender" tooltip="Kalender">today</Icon>
+            <Icon :primary="route == '/util/schuelerhelfenschueler'" to="/util/schuelerhelfenschueler" tooltip="Schüler helfen Schüler">handshake</Icon>            
+            <!-- <Icon :primary="route == '/util/kalender'" to="/util/kalender" tooltip="Kalender">today</Icon>
             <Icon :primary="route == '/util'" to="/util" tooltip="Alle Angebote">more_horiz</Icon>
-            <div @click="openCreate = true"><Icon tooltip="Neues Projekt">add</Icon></div>
+            <div @click="openCreate = true"><Icon tooltip="Neues Projekt">add</Icon></div> -->
 
             <div class="bottom">
                 <Icon :primary="route == '/settings/account'" tooltip="Account">account_circle</Icon>
                 <Icon :primary="route == '/settings'" tooltip="Einstellungen">settings</Icon>
-                <Icon @click="logout" tooltip="Abmelden">exit_to_app</Icon>
+                <div v-on:click="logout"><Icon tooltip="Abmelden">exit_to_app</Icon></div>
             </div>
         </nav>
         <Create @close="openCreate = false" :openCreate="openCreate" />
@@ -41,7 +42,8 @@ export default {
     },
     methods: {
         logout() {
-            this.$auth.logout()
+            this.$auth.reset()
+            this.$router.push('/login')
         }
     }
 }

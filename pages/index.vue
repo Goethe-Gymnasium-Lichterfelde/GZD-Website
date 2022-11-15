@@ -3,11 +3,11 @@
     <div style="width: 100%; height: 40px;"></div>
     <div class="wrapper">
       <div class="grid">
-        <div class="box red">
+        <div class="box red disabled">
           <div class="material-icons">handshake</div>
           Schüler helfen Schüler
         </div>
-        <div class="box orange">
+        <div class="box orange disabled">
           <div class="material-icons">filter_list</div>
           Projekte
         </div>
@@ -19,23 +19,22 @@
           <div class="material-icons">mail</div>
           E-Mails
         </div></nuxt-link>
-        <div class="box green">
+        <div class="box green disabled">
           <div class="material-icons">event</div>
           Kalender
         </div>
-        <div class="box darkgreen">
+        <div class="box darkgreen disabled">
           <div class="material-icons">group</div>
           Arbeitsgemeinschaften
         </div>
       </div>
     </div>
-    <div class="title">
+    <!-- <div class="title">
       <h1>Arbeitsgemeinschaften (AGs)</h1>
     </div>
-    <!-- Slider -->
     <div class="wrapper">
       <Slider :list="orgas"></Slider>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -180,5 +179,10 @@ export default {
     font-size: 30px;
     font-weight: 200;
   }
+}
+
+.disabled {
+  cursor: not-allowed !important;
+  opacity: 0.5;
 }
 </style>

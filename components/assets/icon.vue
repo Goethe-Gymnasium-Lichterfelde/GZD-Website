@@ -113,6 +113,8 @@ export default {
     z-index: 1000;
     cursor: default;
     pointer-events: none;
+    white-space: nowrap;
+    
 
     &.right {
         right: -10px;
