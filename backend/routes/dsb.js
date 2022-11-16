@@ -6,14 +6,9 @@ const dsb = new DSB(process.env.DSB_USN, process.env.DSB_PWD)
 const { parse } =  require('node-html-parser')
 const auth = require('../middleware/auth') 
 
-async function convWebsite(url) {
-    const res = await axios.get(url)
-        .catch(e => {
-            console.log(e)
-        })
+async function convWebsite(data) {
     const plan = []
-
-    const root = parse(res.data)
+    const root = parse(data)
     const table = root.querySelector('.mon_list')
     const items = table.querySelectorAll('.list.odd, .list.even')
     for (i = 0; i < items.length; i++) {
@@ -35,6 +30,15 @@ async function convWebsite(url) {
     return plan
 }
 
+async function convTitle(data) {
+    const root = parse(data)
+    let title = root.querySelector('.mon_title').text
+    if (title.includes('(')) {
+        title = title.substring(0, title.indexOf('('))
+    }
+    return title
+}
+
 router.get('/plan', auth, async (req, res) => {
     dsb.fetch()
         .then(async data => {
@@ -48,16 +52,28 @@ router.get('/plan', auth, async (req, res) => {
                 }
                 if (data.url == null)
                     for (const plan of data.objects) {
-                        const p = await convWebsite(plan.url)
+                        const website = await axios.get(plan.url)
+                            .catch(e => {
+                                console.log(e)
+                            })
+                        if (website.status != 200) return res.status(500).send('Error')
+                        const p = await convWebsite(website.data)
                         for (const item of p) {
                             objs.plan.push(item)
                         }
+                        objs.title = await convTitle(website.data)
                     }
                 else {
-                    const p = await convWebsite(data.url)
+                    const website = await axios.get(data.url)
+                        .catch(e => {
+                            console.log(e)
+                        })
+                    if (website.status != 200) return res.status(500).send('Error')
+                    const p = await convWebsite(website.data)
                     for (const item of p) {
                         objs.plan.push(item)
                     }
+                    objs.title = await convTitle(website.data)
                 }
                 plans.push(objs)
             }
