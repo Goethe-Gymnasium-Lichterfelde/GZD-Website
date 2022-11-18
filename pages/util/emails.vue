@@ -126,7 +126,8 @@ export default {
             selectedEmail: {},
             unreadMails: 0,
             mail: null,
-            loading: true
+            loading: true,
+            user: null,
         }
     },
     middleware: 'auth',
@@ -149,7 +150,7 @@ export default {
             if (req.status == 200) {
                 this.showPasswordInput = false
                 this.sync = false
-                this.syncMails()
+                window.location.reload()
             }
         },
         async getMails() {

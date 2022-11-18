@@ -1,5 +1,6 @@
 <template>
     <div>
+        <teachers v-if="user != null && user.role == 'admin' && openTeacher == true" />
         <div class="bar">
             <div class="bar_cont" v-if="!loading">
                 <div class="btn" v-for="(pl, i) of data" v-bind:key="i" v-on:click="day = i" :class="day == i?'selected':''">{{pl.title}}</div>
@@ -7,6 +8,9 @@
                     <div class="material-icons">filter_alt</div>
                 </div>
                 <div class="btn" v-on:click="selectedLehrer = []">Alle Filter löschen</div>
+                <div class="allgbtn" v-if="user != null && user.role == 'admin'" style="cursor: pointer;" @click="openTeacher = true">
+                    <div class="material-icons">group</div>
+                </div>
                 <div class="dropdown">
                     <span>Lehrer</span>
                     <div class="dropdown-content scrollbar">
@@ -14,10 +18,10 @@
                             class="dropdown-item" 
                             v-for="(lr, i) of lehrer" 
                             v-bind:key="i"
-                            v-on:click="selectedLehrer.includes(lr)?selectedLehrer = selectedLehrer.filter(data => data != lr):selectedLehrer.push(lr)"
-                            :class="selectedLehrer.includes(lr)?'isselected':''"
+                            v-on:click="selectedLehrer.includes(lr.abbreviation)?selectedLehrer = selectedLehrer.filter(data => data != lr):selectedLehrer.push(lr.abbreviation)"
+                            :class="selectedLehrer.includes(lr.abbreviation)?'isselected':''"
                             >
-                            {{lr}}
+                            {{lr.name}}
                         </div>
                     </div>
                 </div>
@@ -43,7 +47,7 @@
                         <div class="oneline">
                             <div class="raumeanderung" v-if="hour.art == 'Raum�nd.' || !hour.neuerRaum.includes('---')">{{hour.neuerRaum}}</div>
                             <div class="klasse" v-if="!hour.klasse.includes('11') && !hour.klasse.includes('12')">{{hour.klasse}}</div>
-                            <div class="stunde" :style="hour.fach == '---'? 'margin: 0;':''">{{hour.stunde}} Stunde</div>
+                            <div class="stunde" :style="hour.fach == '---'? 'margin: 0;':''">{{hour.stunde}}. Stunde</div>
                             <div class="fach" v-if="hour.fach != '---' && hour.fach != ' '" :style="(hour.klasse.includes('11') || hour.klasse.includes('12'))?'width: 100%;':''">
                                 {{(hour.klasse.includes('11') || hour.klasse.includes('12'))?convFach(hour.fach):hour.fach}}
                             </div>
@@ -68,6 +72,8 @@
 </template>
 
 <script>
+import teachers from '../../components/Teachers.vue'
+
 export default {
     name: 'Vertretungsplan',
     middleware: 'auth',
@@ -111,8 +117,13 @@ export default {
             klassen: [],
             lehrer: [],
             selectedLehrer: [],
-            databackup: []
+            databackup: [],
+            user: this.$auth.user,
+            openTeacher: false
         }
+    },
+    components: {
+        teachers
     },
     mounted() {
         // Fetch "api.togert.org/dsb/plan"
@@ -124,12 +135,24 @@ export default {
             .then((res) => {
                 this.data = res.data.reverse()
                 this.databackup = res.data.reverse()
-                console.log(this.data)
                 this.loading = false
             })
             .catch((err) => {
                 console.log(err)
             })
+        
+        this.$axios.get('http://localhost:3001/teachers', {
+            headers: {
+                'x-auth-token': this.$auth.strategy.token.get().slice(7)
+            }
+        })
+            .then((res) => {
+                this.lehrer = res.data
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+
     },
     methods: {
         getdata: function (clas) {
@@ -147,11 +170,7 @@ export default {
                         break
                     }
                 }
-                // If the teacher isn't in the lehrer array, add it except if it includes "---" or "???"
-                if (!this.lehrer.includes(plan.abwesend) && !plan.abwesend.includes('---') && !plan.abwesend.includes('???') && !plan.abwesend.includes('+') && !plan.abwesend.includes(' ')) this.lehrer.push(plan.abwesend)
             }
-
-            console.log(this.lehrer)
             return allhours
         },
         convFach: function (fach) {
@@ -159,7 +178,10 @@ export default {
             if (fach.startsWith('G')) fach = fach.slice(1)
             if (fach.startsWith('L')) fach = 'LK ' + fach.slice(1)
             return fach
-        }
+        },
+        closeTeacher: function () {
+            this.openTeacher = false
+        },
     },
     watch: {
         selectedLehrer: function () {
@@ -429,6 +451,10 @@ export default {
                     bottom: 10px;
                     right: 10px;
                     font-size: 0.8rem;
+                }
+
+                .info {
+                    max-width: calc(100% - 60px);
                 }
             }
         }
