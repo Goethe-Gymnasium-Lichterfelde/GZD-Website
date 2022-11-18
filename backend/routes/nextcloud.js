@@ -14,6 +14,18 @@ router.get('/me', auth, async (req, res) => {
     res.status(200).send(req.user)
 })
 
+router.put('/me', auth, async (req, res) => {
+
+    let user = await User.findOne({ _id: req.user._id })
+    if (!user) return res.status(400).send('User not found')
+
+    const puser = await User.findByIdAndUpdate(req.user._id, {
+        emailPassword: req.body.emailPassword,
+        settings: req.body.settings
+    }, { new: true })
+    res.status(200).send(puser)
+})
+
 router.get('/login/:token', async (req, res) => {
     // Run funtion every 2 seconds for the next 5 minutes
     let started = Date.now()
@@ -33,7 +45,10 @@ router.get('/login/:token', async (req, res) => {
         const user = await User.findOne({ displayName: data.data.loginName })
         if (!user) {
             const newUser = new User({
-                displayName: data.data.loginName
+                displayName: data.data.loginName,
+                settings: {
+                    lehrer: []
+                }
             })
             await newUser.save()
             res.status(200).send({ token: newUser.generateAuthToken() })
@@ -42,4 +57,4 @@ router.get('/login/:token', async (req, res) => {
     }, 2000)
 })
 
-module.exports = router;
+module.exports = router

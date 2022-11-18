@@ -29,6 +29,7 @@ io.on('connection', async (client) => {
     const token = client.handshake.query.token
     let decoded = jwt.verify(token, process.env.JWT_KEY)
     let user = await User.findOne({ _id: decoded._id })
+    if (!user) return client.disconnect()
     let folder = 'INBOX'
 
     // Check if emailPassword is set

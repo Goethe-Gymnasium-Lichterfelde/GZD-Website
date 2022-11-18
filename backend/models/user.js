@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema({
         required: true,
         default: 'user'
     },
+    settings: {
+        type: Object,
+        required: false
+    },
     createdAt: {
         type: Date,
         default: Date.now

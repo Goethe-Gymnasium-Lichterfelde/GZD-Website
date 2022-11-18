@@ -4,8 +4,8 @@
             <div class="navi">
                 <div class="title">Lehrer</div>
                 <div class="right">
-                    <div class="close">
-                        <div class="material-icons" @click="close()">close</div>
+                    <div class="close" @click="close()">
+                        <div class="material-icons">close</div>
                     </div>
                 </div>
             </div>
@@ -146,13 +146,17 @@ export default {
     z-index: 10000;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     border-radius: 5px;
-    animation: fadeIn 0.5s cubic-bezier(0.645, 0.045, 0.355, 1);
+    animation: fadeIn 0.3s cubic-bezier(0.215, 0.610, 0.355, 1);
     overflow: hidden;
 
     @keyframes fadeIn {
         0% {
             opacity: 0;
             transform: translate(-50%, -50%) scale(0.9);
+        }
+        60% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.04);
         }
         100% {
             opacity: 1;

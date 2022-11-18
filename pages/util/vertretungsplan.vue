@@ -1,13 +1,13 @@
 <template>
     <div>
-        <teachers v-if="user != null && user.role == 'admin' && openTeacher == true" />
+        <teachers @closeTeacher="openTeacher = false" v-if="user != null && user.role == 'admin' && openTeacher == true" />
         <div class="bar">
             <div class="bar_cont" v-if="!loading">
                 <div class="btn" v-for="(pl, i) of data" v-bind:key="i" v-on:click="day = i" :class="day == i?'selected':''">{{pl.title}}</div>
                 <div class="allgbtn">
                     <div class="material-icons">filter_alt</div>
                 </div>
-                <div class="btn" v-on:click="selectedLehrer = []">Alle Filter löschen</div>
+                <div class="btn" v-on:click="clearLehrer">Alle Filter löschen</div>
                 <div class="allgbtn" v-if="user != null && user.role == 'admin'" style="cursor: pointer;" @click="openTeacher = true">
                     <div class="material-icons">group</div>
                 </div>
@@ -18,8 +18,8 @@
                             class="dropdown-item" 
                             v-for="(lr, i) of lehrer" 
                             v-bind:key="i"
-                            v-on:click="selectedLehrer.includes(lr.abbreviation)?selectedLehrer = selectedLehrer.filter(data => data != lr):selectedLehrer.push(lr.abbreviation)"
-                            :class="selectedLehrer.includes(lr.abbreviation)?'isselected':''"
+                            v-on:click="toggleLehrer(lr)"
+                            :class="user.settings.lehrer.includes(lr.abbreviation)?'isselected':''"
                             >
                             {{lr.name}}
                         </div>
@@ -116,7 +116,6 @@ export default {
             day: 0,
             klassen: [],
             lehrer: [],
-            selectedLehrer: [],
             databackup: [],
             user: this.$auth.user,
             openTeacher: false
@@ -126,6 +125,7 @@ export default {
         teachers
     },
     mounted() {
+        console.log(this.user)
         // Fetch "api.togert.org/dsb/plan"
         this.$axios.get('http://localhost:3001/dsb/plan', {
             headers: {
@@ -135,6 +135,7 @@ export default {
             .then((res) => {
                 this.data = res.data.reverse()
                 this.databackup = res.data.reverse()
+                this.updateData()
                 this.loading = false
             })
             .catch((err) => {
@@ -152,7 +153,6 @@ export default {
             .catch((err) => {
                 console.log(err)
             })
-
     },
     methods: {
         getdata: function (clas) {
@@ -179,21 +179,46 @@ export default {
             if (fach.startsWith('L')) fach = 'LK ' + fach.slice(1)
             return fach
         },
-        closeTeacher: function () {
-            this.openTeacher = false
+        toggleLehrer: function (lr) {
+            console.log(this.user.settings.lehrer)
+            if (this.user.settings.lehrer.includes(lr.abbreviation)) {
+                this.user.settings.lehrer.splice(this.user.settings.lehrer.indexOf(lr), 1)
+            } else {
+                this.user.settings.lehrer.push(lr.abbreviation)
+            }
+
+            this.updateData()
+
+            this.syncSettings()
         },
-    },
-    watch: {
-        selectedLehrer: function () {
+        clearLehrer: function () {
+            this.user.settings.lehrer = []
             this.data = this.databackup
-            if (this.selectedLehrer.length > 0) {
+            this.syncSettings()
+        },
+        syncSettings: function () {
+            this.$axios.put('http://localhost:3001/nextcloud/me', this.user, {
+                headers: {
+                    'x-auth-token': this.$auth.strategy.token.get().slice(7)
+                }
+            })
+                .then((res) => {
+                    console.log(res)
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+        },
+        updateData: function () {
+            this.data = this.databackup
+            if (this.user.settings.lehrer.length > 0) {
                 let newdata = []
                 for (let i = 0; i < this.data.length; i++) {
                     let sheet = this.data[i]
                     let newplan = []
                     for (let j = 0; j < sheet.plan.length; j++) {
                         let plan = sheet.plan[j]
-                        if (this.selectedLehrer.includes(plan.abwesend)) newplan.push(plan)
+                        if (this.user.settings.lehrer.includes(plan.abwesend)) newplan.push(plan)
                     }
                     newdata.push({
                         date: sheet.date,
@@ -203,7 +228,10 @@ export default {
                 }
                 this.data = newdata
             }
-        }
+        },
+    },
+    watch: {
+        
     }
 }
 </script>
@@ -245,8 +273,11 @@ export default {
     }
 
     .allgbtn {
-        aspect-ratio: 1/1;
+        // aspect-ratio: 1/1;
+        padding: 0 10px;
         height: 100%;
+        font-size: 10px;
+        text-align: center;
         display: grid;
         place-items: center;
         border-right: 1px solid #33333366;
