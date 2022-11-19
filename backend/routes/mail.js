@@ -124,9 +124,10 @@ io.on('connection', async (client) => {
     })
 
     imap.once('error', function (err) {
-        console.log(err)
-        client.emit('error', "0x02")
-        client.disconnect()
+        if (err.source == 'authentication')
+            client.emit('error', "0x01")
+        else
+            client.emit('error', "0x02")
     })
 
     imap.once('end', function () {

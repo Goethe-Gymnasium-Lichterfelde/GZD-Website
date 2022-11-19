@@ -2,7 +2,7 @@
     <div class="container">
         <div class="folders">
             <div class="top">
-                <div class="mail">mateo.meillon</div>
+                <div class="mail">{{user.displayName}}</div>
                 <!--<div class="options">
                     <div :class="sync?'syncing':''"><Icon small>sync</Icon></div>
                     <Icon small>more_vert</Icon>
@@ -94,7 +94,7 @@
             </div>
         </div>
         <div class="passwordInput" v-if="showPasswordInput">
-            <div class="title">Passwort eingeben</div>
+            <div class="title">Kein oder falsches Passwort</div>
             <div class="subtitle">{{sync?'Synchronisieren...':'Bitte gib dein Kopano Passwort ein, um deine E-Mails zu synchronisieren.'}}</div>
             <div class="input" v-if="sync == false">
                 <input type="password" v-model="password" placeholder="Passwort" />
@@ -127,7 +127,7 @@ export default {
             unreadMails: 0,
             mail: null,
             loading: true,
-            user: null,
+            user: this.$auth.user,
         }
     },
     middleware: 'auth',
@@ -150,7 +150,7 @@ export default {
             if (req.status == 200) {
                 this.showPasswordInput = false
                 this.sync = false
-                window.location.reload()
+                location.reload()
             }
         },
         async getMails() {

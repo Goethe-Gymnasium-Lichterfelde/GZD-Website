@@ -10,8 +10,8 @@
             <div @click="openCreate = true"><Icon tooltip="Neues Projekt">add</Icon></div> -->
 
             <div class="bottom">
-                <Icon :primary="route == '/settings/account'" tooltip="Account">account_circle</Icon>
-                <Icon :primary="route == '/settings'" tooltip="Einstellungen">settings</Icon>
+                <!-- <Icon :primary="route == '/settings/account'" tooltip="Account">account_circle</Icon>
+                <Icon :primary="route == '/settings'" tooltip="Einstellungen">settings</Icon> -->
                 <div v-on:click="logout"><Icon tooltip="Abmelden">exit_to_app</Icon></div>
             </div>
         </nav>

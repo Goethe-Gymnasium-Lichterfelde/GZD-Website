@@ -35,7 +35,6 @@ export default class CustomScheme extends LocalScheme {
     async fetchUser () {
         if (this.$auth.strategy.token.get() == undefined) {
             this.$auth.reset()
-            return
         }
 
         let user = await fetch('http://localhost:3001/nextcloud/me', {

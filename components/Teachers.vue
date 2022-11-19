@@ -20,7 +20,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr style="position: sticky; top: 0; box-shadow: 0 0 10px -5px black;">
+                        <tr style="position: sticky; top: 0; box-shadow: 0 0 10px -5px black; z-index: 100;">
                             <td>
                                 <input type="text" v-model="teacher.kuerzel" placeholder="Kürzel" />
                             </td>

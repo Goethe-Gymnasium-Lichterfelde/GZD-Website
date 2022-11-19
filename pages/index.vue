@@ -3,10 +3,10 @@
     <div style="width: 100%; height: 40px;"></div>
     <div class="wrapper">
       <div class="grid">
-        <div class="box red disabled">
+        <nuxt-link to="/util/schuelerhelfenschueler"><div class="box red">
           <div class="material-icons">handshake</div>
           Schüler helfen Schüler
-        </div>
+        </div></nuxt-link>
         <div class="box orange disabled">
           <div class="material-icons">filter_list</div>
           Projekte
