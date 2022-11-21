@@ -1,5 +1,6 @@
 <template>
-    <div class="bg">
+    <div>
+        <div class="bg"></div>
         <div class="center">
             <div class="title">Goethe Gymnasium Lichterfelde Berlin</div>
             <div class="subtitle">Das Schulforum</div>
@@ -49,6 +50,8 @@ export default {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    filter: blur(8px);
+    -webkit-filter: blur(8px);
 }
 .center {
     width: 500px;

@@ -39,9 +39,7 @@
                             (hour.art.includes('Vertr.')) ? 'vertretung' :
                             (hour.art == 'Entfall' || hour.art == 'EVA') ? 'entfall' :
                             (hour.art == 'Mitbetr.') ? 'mitbetreten' :
-                            (hour.art == 'Raum�nd.') ? 'raumaenderung' : 
-                            (hour.art.includes('Veranst.')) ? 'mitbetreten' : 
-                            (hour.art == 'Verlegung') ? 'mitbetreten' : ''
+                            (hour.art == 'Raum�nd.') ? 'raumaenderung' : 'mitbetreten'
                         "
                     >
                         <div class="oneline">
@@ -370,13 +368,16 @@ export default {
             display: flex;
             flex-direction: column;
             overflow-y: hidden;
+            padding-top: 5px;
 
             .hour {
-                width: calc(100%);
+                width: calc(100% - 20px);
                 padding: 10px;
                 animation: fadein 0.5s;
-                border-bottom: 1px solid rgba(51, 51, 51, 0.2);
+                border-bottom: 2px solid rgba(51, 51, 51, 0.2);
                 position: relative;
+                margin: 5px 10px;
+                border-radius: 5px;
 
                 @keyframes fadein {
                     from {
@@ -390,16 +391,16 @@ export default {
                 }
 
                 &.entfall {
-                    background-color: rgba(255, 0, 0, 0.2);
+                    background-color: rgba(255, 0, 0, 0.4);
                 }
                 &.vertretung {
-                    background-color: rgba(0, 255, 0, 0.2);
+                    background-color: rgba(0, 255, 0, 0.4);
                 }
                 &.mitbetreten {
-                    background-color: rgba(0, 0, 255, 0.1);
+                    background-color: rgba(0, 0, 255, 0.4);
                 }
                 &.raumaenderung {
-                    background-color: rgba(255, 255, 0, 0.2);
+                    background-color: rgba(255, 255, 0, 0.4);
                 }
 
                 .oneline {
@@ -416,7 +417,7 @@ export default {
                         border-radius: 5px;
                         margin-right: 5px;
                         width: 100%;
-                        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+                        // box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
                     }
 
                     .raumeanderung {
@@ -426,7 +427,7 @@ export default {
                         border-radius: 5px;
                         margin-right: 5px;
                         white-space: nowrap;
-                        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+                        // box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
                     }
 
                     .stunde {
@@ -436,7 +437,7 @@ export default {
                         border-radius: 5px;
                         margin-right: 5px;
                         width: 100%;
-                        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+                        // box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
                         // Rest elipses
                         overflow: hidden;
                         text-overflow: ellipsis;
@@ -448,7 +449,7 @@ export default {
                         background-color: white;
                         padding: 5px 10px;
                         border-radius: 5px;
-                        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+                        // box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
                         text-transform: uppercase;
                         font-weight: bold;
                     }
@@ -460,7 +461,7 @@ export default {
                         border-radius: 5px;
                         margin-right: 5px;
                         width: 50%;
-                        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+                        // box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
                     }
 
                     .vertreter {
@@ -468,7 +469,7 @@ export default {
                         background-color: white;
                         padding: 5px 10px;
                         border-radius: 5px;
-                        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+                        // box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
                         width: 50%;
                     }
 
@@ -486,6 +487,7 @@ export default {
 
                 .info {
                     max-width: calc(100% - 60px);
+                    padding-top: 5px;
                 }
             }
         }
